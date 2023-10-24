@@ -295,13 +295,34 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
    printf("parse_message\n");
    char * cmd = strtok(buffer, " ");
 
-   if(strcmp(cmd, "CHAT") == 0)
+   if(strcmp(cmd, "HELP") == 0)
+   {
+      /* 
+      Format de la requete:
+      HELP
+      */
+      //printf("%s : HELP\n", sender.name);
+      char * message = "Commandes valides:\nLISTE_PSEUDO, CHAT, DEFIER, ACCEPTER, JOUER";
+      write_client(sender.sock, message);
+   }
+   else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
+   {
+      /* 
+      Format de la requete:
+      LISTE_PSEUDO
+      */
+      //printf("%s : LISTE_PSEUDO\n", sender.name);
+      char * receiver = strtok(NULL, " ");
+      char * message = strtok(NULL, "\0");
+      send_message_to_client(clients, sender, receiver, message, actual);
+   }
+   else if(strcmp(cmd, "CHAT") == 0)
    {
       /* 
       Format de la requete:
       CHAT pseudo message
       */
-      printf("%s : CHAT\n", sender.name);
+      //printf("%s : CHAT\n", sender.name);
       char * receiver = strtok(NULL, " ");
       char * message = strtok(NULL, "\0");
       send_message_to_client(clients, sender, receiver, message, actual);
@@ -329,8 +350,8 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       JOUER slot
       */
       printf("%s : JOUER\n", sender.name);
-      int slot = atoi(strtok(NULL, " "));
-      play_awale_move(sender, slot);
+      //int slot = atoi(strtok(NULL, " "));
+      //play_awale_move(sender, slot);
    }
    else
    {
