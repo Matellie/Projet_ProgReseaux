@@ -7,29 +7,41 @@
 
 int main(int argc, char **argv){
     struct AwaleGame* game = createGame();
-    int winner = 0;
     int slot;
-    printf("%s",askColumn(game));
+    char* text = askColumn(game);
+    printf("%s",text);
     while(game != NULL){
+        free(text);
         scanf("%d", &slot);
-        char* text = jouer(game, slot);
+        text = jouer(game, slot);
         printf("%s", text);
+        
     }
+    free(text);
+    printf("GoodBye !\n");
+    return 0;
 }
 
 char* jouer(struct AwaleGame* game, int slot){
     char* result = malloc(sizeof(char)*1000);
     int error = playAwale(game, slot);
+    char* displayBoard = gameToString(game);
+    strcpy(result,displayBoard);
+    free(displayBoard);
     if (error < 0){
-        strcat(result,showError(error));
+        char* errorMsg = showError(error);
+        strcat(result,errorMsg);
+        free(errorMsg);
     }
-    strcat(result,gameToString(game));
-    strcat(result,askColumn(game));
     int winner = endGame(game);
     if (winner == 0){
-        strcat(result,askColumn(game));
+        char* askMsg = askColumn(game);
+        strcat(result, askMsg);
+        free(askMsg);
     } else {
-        strcat(result,showWinner(winner));
+        char* winnerMsg = showWinner(winner);
+        strcat(result,winnerMsg);
+        free(winnerMsg);
     }
     return result;
 }
@@ -38,7 +50,7 @@ char* gameToString(struct AwaleGame* game){
     char* result = malloc(sizeof(char)*500);
     char separator[] = "+--+--+--+--+--+--+\n"; 
     char endOfLine[] = "|\n";
-    strcat(result,separator);
+    strcpy(result,separator);
     for (int i=0; i<6; ++i){
         char slot[10];
         if (game->board[i] < 10)
@@ -74,7 +86,7 @@ char* askColumn(struct AwaleGame* game){
     char* result = malloc(sizeof(char)*200);
     char temp[200];
     sprintf(temp, "Current player : %d\n", game->currentPlayer);
-    strcat(result,temp);
+    strcpy(result,temp);
     sprintf(temp, "Choose a slot (1-6) : ");
     strcat(result, temp);
     return result;
@@ -188,45 +200,53 @@ int playAwale(struct AwaleGame* game, int slot){
 int endGame(struct AwaleGame* game){
     int i;
     int winner = (game->player1Score > game->player2Score ? 1 : 2);
-    if (game->player1Score > 24 || game->player2Score >24)
-        return winner;
-        
-    bool emptySide = true;
-    if (game->currentPlayer == 2) {
-        for (i=6; i<12; i++){
-            if (game->board[i] > 0){
-                emptySide = false;
-                break;
-            }
-        }
-    } else {
-        for (i=0; i<5; i++){
-            if (game->board[i] > 0){
-                emptySide = false;
-                break;
-            }
-        }
+
+    if (game->player1Score > 24 || game->player2Score > 24){
+        printf("Will return %d\n", winner);
+        return winner;    
     }
 
+    /* Checking if player 1's side is empty*/
+    bool emptySide = true;
+    for (i=0; i<5; i++){
+        if (game->board[i] > 0){
+            emptySide = false;
+            break;
+        }
+    }
     if (emptySide){
         free(game);
         game = NULL;
         return winner;
+    } 
+
+    /* Checking if player 2's side is empty*/
+    emptySide = true;
+    for (i=6; i<12; i++){
+        if (game->board[i] > 0){
+            emptySide = false;
+            break;
+        }
     }
-    
+    if (emptySide){
+        free(game);
+        game = NULL;
+        return winner;
+    } 
+
     return 0;
 }
 
 char* showWinner(int winner){
-    char * result;
-    sprintf(result, "\nPlayer %d won !\nHe is the rice master !", winner);
+    char * result = malloc(sizeof(char)*60);
+    sprintf(result, "\nPlayer %d won !\nPlayer %d is the rice master !\n", winner, winner);
     return result;
 }
 
 char* showError(int error){
     switch (error){
         case -1 :
-            return "Wrong input !";
+            return "Wrong input !\n";
     }
-    return "Unhandled Error";
+    return "Unhandled Error\n";
 }
