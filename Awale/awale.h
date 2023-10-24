@@ -2,8 +2,8 @@
 #define AWALE_H
 
 struct AwaleGame {
-    int player1;
-    int player2;
+    char* player1;
+    char* player2;
     int player1Score;
     int player2Score;
     int currentPlayer;
@@ -11,8 +11,12 @@ struct AwaleGame {
 };
 
 struct AwaleGame* createGame();
-static int playAwale(struct AwaleGame* game, int slot);
-static char* gameToString(struct AwaleGame* game);
-static int endGame(struct AwaleGame* game);
+char* jouer(struct AwaleGame* game, int slot);
+char* gameToString(struct AwaleGame* game);
+char* askColumn(struct AwaleGame* game);
+int playAwale(struct AwaleGame* game, int slot);
+int endGame(struct AwaleGame* game);
+char* showWinner(int winner);
+char* showError(int error);
 
 #endif

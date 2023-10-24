@@ -5,26 +5,36 @@
 
 #include "awale.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
     struct AwaleGame* game = createGame();
     int winner = 0;
     int slot;
-    while(endGame(game) ==  0){
-        slot = -1;
-        while (slot <1 || slot > 6){
-            printf("Current player : %d\n", game->currentPlayer);
-            printf("Choose a slot (1-6) : ");
-            scanf("%d", &slot);
-        }
-        printf("\n");
-        slot -= 1;
-        playAwale(game, slot);
-        printf("%s\n", gameToString(game));
+    printf("%s",askColumn(game));
+    while(game != NULL){
+        scanf("%d", &slot);
+        char* text = jouer(game, slot);
+        printf("%s", text);
     }
 }
 
-static char* gameToString(struct AwaleGame* game){
+char* jouer(struct AwaleGame* game, int slot){
+    char* result = malloc(sizeof(char)*1000);
+    int error = playAwale(game, slot);
+    if (error < 0){
+        strcat(result,showError(error));
+    }
+    strcat(result,gameToString(game));
+    strcat(result,askColumn(game));
+    int winner = endGame(game);
+    if (winner == 0){
+        strcat(result,askColumn(game));
+    } else {
+        strcat(result,showWinner(winner));
+    }
+    return result;
+}
+
+char* gameToString(struct AwaleGame* game){
     char* result = malloc(sizeof(char)*500);
     char separator[] = "+--+--+--+--+--+--+\n"; 
     char endOfLine[] = "|\n";
@@ -60,6 +70,16 @@ static char* gameToString(struct AwaleGame* game){
     return result;
 }
 
+char* askColumn(struct AwaleGame* game){
+    char* result = malloc(sizeof(char)*200);
+    char temp[200];
+    sprintf(temp, "Current player : %d\n", game->currentPlayer);
+    strcat(result,temp);
+    sprintf(temp, "Choose a slot (1-6) : ");
+    strcat(result, temp);
+    return result;
+}
+
 struct AwaleGame* createGame(){
     struct AwaleGame* newGame = malloc(sizeof(struct AwaleGame));
     newGame->player1Score = 0;
@@ -71,7 +91,10 @@ struct AwaleGame* createGame(){
     return newGame;
 }
 
-static int playAwale(struct AwaleGame* game, int slot){
+int playAwale(struct AwaleGame* game, int slot){
+    slot -= 1; // To use 0-based index.
+    if (slot < 0 || slot > 5) return -1;
+
     int i;
     if (game->currentPlayer == 2)
         slot = 11 - slot;
@@ -84,8 +107,6 @@ static int playAwale(struct AwaleGame* game, int slot){
     
     int nbBeads =  previewArray[slot];
     if (nbBeads == 0) return -1; /* Case when player choose and empty slot */
-
-    printf("nbBeads : %d\n", nbBeads);
     
     /* Take the beads out of the selected slot*/
     previewArray[slot] = 0;
@@ -97,11 +118,6 @@ static int playAwale(struct AwaleGame* game, int slot){
         if (nextSlot != slot) /* Must ignore the slot that was emptied */
             previewArray[nextSlot] += 1;
     }
-
-    printf("PreviewArray : ");
-    for(i=0; i<12; ++i)
-        printf("%d|",previewArray[i]);
-    printf("\n");
 
     int scoreToAdd = 0;
     int slotToEmpty = (slot+nbBeads)%12;
@@ -169,11 +185,12 @@ static int playAwale(struct AwaleGame* game, int slot){
     return 0;
 }
 
-static int endGame(struct AwaleGame* game){
+int endGame(struct AwaleGame* game){
     int i;
     int winner = (game->player1Score > game->player2Score ? 1 : 2);
     if (game->player1Score > 24 || game->player2Score >24)
         return winner;
+        
     bool emptySide = true;
     if (game->currentPlayer == 2) {
         for (i=6; i<12; i++){
@@ -193,8 +210,23 @@ static int endGame(struct AwaleGame* game){
 
     if (emptySide){
         free(game);
+        game = NULL;
         return winner;
     }
-
+    
     return 0;
+}
+
+char* showWinner(int winner){
+    char * result;
+    sprintf(result, "\nPlayer %d won !\nHe is the rice master !", winner);
+    return result;
+}
+
+char* showError(int error){
+    switch (error){
+        case -1 :
+            return "Wrong input !";
+    }
+    return "Unhandled Error";
 }
