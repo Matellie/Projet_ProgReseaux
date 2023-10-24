@@ -301,7 +301,6 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       Format de la requete:
       HELP
       */
-      //printf("%s : HELP\n", sender.name);
       char * message = "Commandes valides:\nLISTE_PSEUDO, CHAT, DEFIER, ACCEPTER, JOUER";
       write_client(sender.sock, message);
    }
@@ -311,10 +310,14 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       Format de la requete:
       LISTE_PSEUDO
       */
-      //printf("%s : LISTE_PSEUDO\n", sender.name);
-      char * receiver = strtok(NULL, " ");
-      char * message = strtok(NULL, "\0");
-      send_message_to_client(clients, sender, receiver, message, actual);
+      char message[BUF_SIZE];
+      message[0] = 0;
+      for(int i=0; i<actual; i++)
+      {
+         strncat(message, clients[i].name, sizeof message - strlen(message) - 1);
+         strncat(message, ", ", sizeof message - strlen(message) - 1);
+      }
+      write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "CHAT") == 0)
    {
@@ -322,7 +325,6 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       Format de la requete:
       CHAT pseudo message
       */
-      //printf("%s : CHAT\n", sender.name);
       char * receiver = strtok(NULL, " ");
       char * message = strtok(NULL, "\0");
       send_message_to_client(clients, sender, receiver, message, actual);
