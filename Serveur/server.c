@@ -121,7 +121,7 @@ static void app(void)
                }
                else
                {
-                  parse_message(clients, client, buffer, actual);
+                  parse_message(clients, client, i, buffer, actual);
                   //send_message_to_all_clients(clients, client, actual, buffer, 0);
                   //send_message_to_self(client, buffer);
                }
@@ -290,7 +290,7 @@ static void play_awale_move(Client client, int slot)
    // Sinon -> renvoyer plateau et message erreur
 }
 
-static void parse_message(Client * clients, Client sender, char *buffer, int actual)
+static void parse_message(Client * clients, Client sender, int indexClient, char *buffer, int actual)
 {
    printf("parse_message\n");
    char * cmd = strtok(buffer, " ");
@@ -323,13 +323,10 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
    {
       /* 
       Format de la requete:
-      SET_BIO bio
+      SET_BIO texte_bio
       */
-
-      // TODO : RECUPERER COPIE GLOBALE DU SENDER
-      
-      char * newBio = strtok(NULL, "\0");
-      strncpy(sender.bio, newBio, BUF_SIZE - 1);
+      char * texte_bio = strtok(NULL, "\0");
+      strncpy(clients[indexClient].bio, texte_bio, BUF_SIZE - 1);
    }
    else if(strcmp(cmd, "GET_BIO") == 0)
    {
@@ -337,12 +334,7 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       Format de la requete:
       GET_BIO pseudo
       */
-
-      // TODO : RECUPERER COPIE GLOBALE DU SENDER
-
-
-      write_client(sender.sock, sender.bio);
-      /*char * pseudo = strtok(NULL, "\0");
+      char * pseudo = strtok(NULL, "\0");
 
       // Find index of the pseudo
       int indexPseudo = -1;
@@ -359,21 +351,14 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       message[0] = 0;
       if(indexPseudo != -1)
       {
-         printf("aaaaaaaaaaa");
-         printf("%d | %s", indexPseudo, clients[indexPseudo].bio);
-
-         strncpy(message, clients[indexPseudo].bio, sizeof message - strlen(message) - 1);
+         strncpy(message, clients[indexPseudo].bio, BUF_SIZE - 1);
          write_client(sender.sock, message);
       }
       else
       {
-         printf("bbbbbbbbbbb");
-         printf("%d | %s", indexPseudo, clients[indexPseudo].bio);
-
-         strncpy(message, "Cette personne n'est pas connectée ! :(\n", sizeof message - strlen(message) - 1);
+         strncpy(message, "Cette personne n'est pas connectée ! :(", BUF_SIZE - 1);
          write_client(sender.sock, message);
       }
-      */
    }
    else if(strcmp(cmd, "CHAT") == 0)
    {

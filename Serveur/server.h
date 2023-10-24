@@ -48,7 +48,7 @@ static void send_message_to_self(Client client, const char *buffer);
 static void send_message_to_client(Client * clients, Client sender, char *receiver, const char *buffer, int actual);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
-static void parse_message(Client * clients, Client sender, char *buffer, int actual);
+static void parse_message(Client * clients, Client sender, int indexClient, char *buffer, int actual);
 static void play_awale_move(Client client, int slot);
 
 #endif /* guard */
