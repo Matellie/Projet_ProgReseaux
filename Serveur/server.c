@@ -282,6 +282,14 @@ static void write_client(SOCKET sock, const char *buffer)
    }
 }
 
+static void play_awale_move(Client client, int slot)
+{
+   // Recuperer la bonne partie
+   // Jouer le coup
+   // Si coup ok et bon sender -> renvoyer nouveau plateau
+   // Sinon -> renvoyer plateau et message erreur
+}
+
 static void parse_message(Client * clients, Client sender, char *buffer, int actual)
 {
    printf("parse_message\n");
@@ -289,19 +297,40 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
 
    if(strcmp(cmd, "CHAT") == 0)
    {
-      // CHAT pseudo message
+      /* 
+      Format de la requete:
+      CHAT pseudo message
+      */
       printf("%s : CHAT\n", sender.name);
       char * receiver = strtok(NULL, " ");
       char * message = strtok(NULL, "\0");
       send_message_to_client(clients, sender, receiver, message, actual);
    }
-   else if(strcmp(cmd, "PLAY") == 0)
+   else if(strcmp(cmd, "DEFIER") == 0)
    {
-      printf("%s : PLAY\n", sender.name);
+      /* 
+      Format de la requete:
+      DEFIER
+      */
+      printf("%s : DEFIER\n", sender.name);
    }
-   else if(strcmp(cmd, "MAKE") == 0)
+   else if(strcmp(cmd, "ACCEPTER") == 0)
    {
-      printf("%s : MAKE\n", sender.name);
+      /* 
+      Format de la requete:
+      ACCEPTER
+      */
+      printf("%s : ACCEPTER\n", sender.name);
+   }
+   else if(strcmp(cmd, "JOUER") == 0)
+   {
+      /* 
+      Format de la requete:
+      JOUER slot
+      */
+      printf("%s : JOUER\n", sender.name);
+      int slot = atoi(strtok(NULL, " "));
+      play_awale_move(sender, slot);
    }
    else
    {
