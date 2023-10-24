@@ -117,13 +117,13 @@ static void app(void)
                   strncpy(buffer, client.name, BUF_SIZE - 1);
                   strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
                   send_message_to_all_clients(clients, client, actual, buffer, 1);
-                  send_message_to_self(client, buffer, 1);
+                  send_message_to_self(client, buffer);
                }
                else
                {
-                  parse_message(client, buffer);
+                  parse_message(clients, client, buffer, actual);
                   //send_message_to_all_clients(clients, client, actual, buffer, 0);
-                  //send_message_to_self(client, buffer, 0);
+                  //send_message_to_self(client, buffer);
                }
                break;
             }
@@ -176,18 +176,46 @@ static void send_message_to_all_clients(Client *clients, Client sender, int actu
    }
 }
 
-static void send_message_to_self(Client sender, const char *buffer, char from_server)
+static void send_message_to_self(Client sender, const char *buffer)
 {
    printf("send_message_to_self\n");
    char message[BUF_SIZE];
    message[0] = 0;
-   if(from_server == 0)
+   strncpy(message, sender.name, BUF_SIZE - 1);
+   strncat(message, " : ", sizeof message - strlen(message) - 1);
+   strncat(message, buffer, sizeof message - strlen(message) - 1);
+   printf("%s\n",message);
+}
+
+static void send_message_to_client(Client * clients, Client sender, char *receiver, const char *buffer, int actual)
+{
+   printf("send_message_to_client");
+   
+   // Find index of the receiver
+   int indexReceiver = -1;
+   for(int i=0; i<actual; i++)
+   {
+      if(strcmp(receiver, clients[i].name) == 0)
+      {
+         indexReceiver = i;
+         break;
+      }
+   }
+
+   char message[BUF_SIZE];
+   message[0] = 0;
+   if(indexReceiver != -1) // Si le receiver est connecté envoyer message
    {
       strncpy(message, sender.name, BUF_SIZE - 1);
       strncat(message, " : ", sizeof message - strlen(message) - 1);
+      strncat(message, buffer, sizeof message - strlen(message) - 1);
+      write_client(clients[indexReceiver].sock, message);
    }
-   strncat(message, buffer, sizeof message - strlen(message) - 1);
-   printf("%s\n",message);
+   else // Si le receiver n est pas dans la liste des gens connectés envoyer message d erreur au sender
+   {
+      strncpy(message, "Cette personne n'est pas connectée ! :(\n", BUF_SIZE - 1);
+      write_client(sender.sock, message);
+   }
 }
 
 static int init_connection(void)
@@ -254,29 +282,24 @@ static void write_client(SOCKET sock, const char *buffer)
    }
 }
 
-static void parse_message(Client sender, char *buffer)
+static void parse_message(Client * clients, Client sender, char *buffer, int actual)
 {
    printf("parse_message\n");
-   char * list[5];
-   char * pch = strtok (buffer, " ");
+   char * cmd = strtok(buffer, " ");
 
-   int i = 0;
-   while (pch != NULL)
+   if(strcmp(cmd, "CHAT") == 0)
    {
-      list[i] = pch;
-      pch = strtok (NULL, " ");
-      i++;
-   }
-
-   if(strcmp(list[0], "CHAT") == 0)
-   {
+      // CHAT pseudo message
       printf("%s : CHAT\n", sender.name);
+      char * receiver = strtok(NULL, " ");
+      char * message = strtok(NULL, "\0");
+      send_message_to_client(clients, sender, receiver, message, actual);
    }
-   else if(strcmp(list[0], "PLAY") == 0)
+   else if(strcmp(cmd, "PLAY") == 0)
    {
       printf("%s : PLAY\n", sender.name);
    }
-   else if(strcmp(list[0], "MAKE") == 0)
+   else if(strcmp(cmd, "MAKE") == 0)
    {
       printf("%s : MAKE\n", sender.name);
    }
