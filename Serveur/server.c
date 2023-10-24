@@ -301,7 +301,7 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
       Format de la requete:
       HELP
       */
-      char * message = "Commandes valides:\nLISTE_PSEUDO, CHAT, DEFIER, ACCEPTER, JOUER";
+      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, JOUER";
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
@@ -318,6 +318,62 @@ static void parse_message(Client * clients, Client sender, char *buffer, int act
          strncat(message, ", ", sizeof message - strlen(message) - 1);
       }
       write_client(sender.sock, message);
+   }
+   else if(strcmp(cmd, "SET_BIO") == 0)
+   {
+      /* 
+      Format de la requete:
+      SET_BIO bio
+      */
+
+      // TODO : RECUPERER COPIE GLOBALE DU SENDER
+      
+      char * newBio = strtok(NULL, "\0");
+      strncpy(sender.bio, newBio, BUF_SIZE - 1);
+   }
+   else if(strcmp(cmd, "GET_BIO") == 0)
+   {
+      /* 
+      Format de la requete:
+      GET_BIO pseudo
+      */
+
+      // TODO : RECUPERER COPIE GLOBALE DU SENDER
+
+
+      write_client(sender.sock, sender.bio);
+      /*char * pseudo = strtok(NULL, "\0");
+
+      // Find index of the pseudo
+      int indexPseudo = -1;
+      for(int i=0; i<actual; i++)
+      {
+         if(strcmp(pseudo, clients[i].name) == 0)
+         {
+            indexPseudo = i;
+            break;
+         }
+      }
+
+      char message[BUF_SIZE];
+      message[0] = 0;
+      if(indexPseudo != -1)
+      {
+         printf("aaaaaaaaaaa");
+         printf("%d | %s", indexPseudo, clients[indexPseudo].bio);
+
+         strncpy(message, clients[indexPseudo].bio, sizeof message - strlen(message) - 1);
+         write_client(sender.sock, message);
+      }
+      else
+      {
+         printf("bbbbbbbbbbb");
+         printf("%d | %s", indexPseudo, clients[indexPseudo].bio);
+
+         strncpy(message, "Cette personne n'est pas connectée ! :(\n", sizeof message - strlen(message) - 1);
+         write_client(sender.sock, message);
+      }
+      */
    }
    else if(strcmp(cmd, "CHAT") == 0)
    {
