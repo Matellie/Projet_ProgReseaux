@@ -7,4 +7,4 @@ run-awale:
 valgrind-awale:
 	cd Awale && \
 	gcc -Wall -g awale.c -o awale && \
-	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./all
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./awale

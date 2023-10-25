@@ -8,15 +8,16 @@ struct AwaleGame {
     int player2Score;
     int currentPlayer;
     int board[12]; /* Player 1 occupies slots 0-5 and 2 occupies slots 6-11*/ 
+    bool isFinished;
 };
 
-struct AwaleGame* createGame();
-char* jouer(struct AwaleGame* game, int slot);
-char* gameToString(struct AwaleGame* game);
-char* askColumn(struct AwaleGame* game);
+int createGame(struct AwaleGame* newGame);
+int jouer(struct AwaleGame* game, int slot, char* result);
+int  gameToString(struct AwaleGame* game, char* result);
+int  askColumn(struct AwaleGame* game, char* result);
 int playAwale(struct AwaleGame* game, int slot);
 int endGame(struct AwaleGame* game);
-char* showWinner(int winner);
+int showWinner(int winner, char* result);
 char* showError(int error);
 
 #endif

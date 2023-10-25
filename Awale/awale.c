@@ -6,48 +6,51 @@
 #include "awale.h"
 
 int main(int argc, char **argv){
-    struct AwaleGame* game = createGame();
+    struct AwaleGame* game = malloc(sizeof(struct AwaleGame));
+    createGame(game);
     int slot;
-    char* text = askColumn(game);
+    char* text = malloc(sizeof(char)*1000);
+    askColumn(game,text);
     printf("%s",text);
-    while(game != NULL){
-        free(text);
-        scanf("%d", &slot);
-        text = jouer(game, slot);
-        printf("%s", text);
-        
-    }
     free(text);
+    while(game->isFinished == false){
+        scanf("%d", &slot);
+        text = malloc(sizeof(char)*1000);
+        jouer(game, slot, text);
+        printf("%s", text);
+        free(text);
+    }
+    free(game);
     printf("GoodBye !\n");
     return 0;
 }
 
-char* jouer(struct AwaleGame* game, int slot){
-    char* result = malloc(sizeof(char)*1000);
+int jouer(struct AwaleGame* game, int slot, char* result){
     int error = playAwale(game, slot);
-    char* displayBoard = gameToString(game);
-    strcpy(result,displayBoard);
-    free(displayBoard);
+    char* boardMsg = malloc(sizeof(char)*500);
+    gameToString(game, boardMsg);
+    strcpy(result,boardMsg);
+    free(boardMsg);
     if (error < 0){
         char* errorMsg = showError(error);
         strcat(result,errorMsg);
-        free(errorMsg);
     }
     int winner = endGame(game);
     if (winner == 0){
-        char* askMsg = askColumn(game);
+        char* askMsg = malloc(sizeof(char)*200);
+        askColumn(game, askMsg);
         strcat(result, askMsg);
         free(askMsg);
     } else {
-        char* winnerMsg = showWinner(winner);
+        char* winnerMsg = malloc(sizeof(char)*60);
+        showWinner(winner, winnerMsg);
         strcat(result,winnerMsg);
         free(winnerMsg);
     }
-    return result;
+    return 0;
 }
 
-char* gameToString(struct AwaleGame* game){
-    char* result = malloc(sizeof(char)*500);
+int gameToString(struct AwaleGame* game, char* result){
     char separator[] = "+--+--+--+--+--+--+\n"; 
     char endOfLine[] = "|\n";
     strcpy(result,separator);
@@ -79,28 +82,27 @@ char* gameToString(struct AwaleGame* game){
     strcat(result,scores);
     strcat(result,player1);
     strcat(result,player2);
-    return result;
+    return 0;
 }
 
-char* askColumn(struct AwaleGame* game){
-    char* result = malloc(sizeof(char)*200);
+int askColumn(struct AwaleGame* game, char* result){
     char temp[200];
     sprintf(temp, "Current player : %d\n", game->currentPlayer);
     strcpy(result,temp);
     sprintf(temp, "Choose a slot (1-6) : ");
     strcat(result, temp);
-    return result;
+    return 0;
 }
 
-struct AwaleGame* createGame(){
-    struct AwaleGame* newGame = malloc(sizeof(struct AwaleGame));
+int createGame(struct AwaleGame* newGame){
     newGame->player1Score = 0;
     newGame->player2Score = 0;
     for (int i=0; i<12; i++){
         newGame->board[i] = 4;
     }
     newGame->currentPlayer = 1;
-    return newGame;
+    newGame->isFinished = false;
+    return 0;
 }
 
 int playAwale(struct AwaleGame* game, int slot){
@@ -202,7 +204,7 @@ int endGame(struct AwaleGame* game){
     int winner = (game->player1Score > game->player2Score ? 1 : 2);
 
     if (game->player1Score > 24 || game->player2Score > 24){
-        printf("Will return %d\n", winner);
+        game->isFinished = true;
         return winner;    
     }
 
@@ -215,8 +217,7 @@ int endGame(struct AwaleGame* game){
         }
     }
     if (emptySide){
-        free(game);
-        game = NULL;
+        game->isFinished = true;
         return winner;
     } 
 
@@ -229,18 +230,16 @@ int endGame(struct AwaleGame* game){
         }
     }
     if (emptySide){
-        free(game);
-        game = NULL;
+        game->isFinished = true;
         return winner;
     } 
 
     return 0;
 }
 
-char* showWinner(int winner){
-    char * result = malloc(sizeof(char)*60);
+int showWinner(int winner, char* result){
     sprintf(result, "\nPlayer %d won !\nPlayer %d is the rice master !\n", winner, winner);
-    return result;
+    return 0;
 }
 
 char* showError(int error){
