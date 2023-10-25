@@ -20,6 +20,14 @@ int main(int argc, char **argv){
         printf("%s", text);
         free(text);
     }
+    printf("\nReplay of the game ? (1(yes)/0(no)) : ");
+    scanf("%d", &slot);
+    if (slot){
+        text = malloc(sizeof(char)*1000*game->nextMoveInSequence);
+        replayGame(game,text);
+        printf("\n%s\n",text);
+        free(text);
+    }
     free(game);
     printf("GoodBye !\n");
     return 0;
@@ -31,9 +39,11 @@ int jouer(struct AwaleGame* game, int slot, char* result){
     gameToString(game, boardMsg);
     strcpy(result,boardMsg);
     free(boardMsg);
-    if (error < 0){
+    if (error < 0){ /* If move was not accepted display the error */
         char* errorMsg = showError(error);
         strcat(result,errorMsg);
+    } else { /* If move is accepted then register it*/
+        registerMove(game, slot);
     }
     int winner = endGame(game);
     if (winner == 0){
@@ -102,6 +112,14 @@ int createGame(struct AwaleGame* newGame){
     }
     newGame->currentPlayer = 1;
     newGame->isFinished = false;
+    newGame->nextMoveInSequence = 0;
+    return 0;
+}
+
+int registerMove(struct AwaleGame* game, int slot){
+    if (game->nextMoveInSequence >= MAX_AWALE_MOVES ) return -1; /*Error, move limit has been reached */
+
+    game->moveSequence[game->nextMoveInSequence++] = slot;
     return 0;
 }
 
@@ -203,7 +221,7 @@ int endGame(struct AwaleGame* game){
     int i;
     int winner = (game->player1Score > game->player2Score ? 1 : 2);
 
-    if (game->player1Score > 24 || game->player2Score > 24){
+    if (game->player1Score > 24 || game->player2Score > 24 || game->nextMoveInSequence >= MAX_AWALE_MOVES){
         game->isFinished = true;
         return winner;    
     }
@@ -248,4 +266,19 @@ char* showError(int error){
             return "Wrong input !\n";
     }
     return "Unhandled Error\n";
+}
+
+int replayGame(struct AwaleGame* game, char* result){
+    struct AwaleGame* duplicateGame = malloc(sizeof(struct AwaleGame));
+    createGame(duplicateGame);
+    char replayMsg[] = "Replay of the game :\n\n";
+    strcpy(result,replayMsg);
+    for (int i=0; i<game->nextMoveInSequence; ++i){
+        char* moveMsg = malloc(sizeof(char)*1000);
+        jouer(duplicateGame, game->moveSequence[i], moveMsg);
+        strcat(result, moveMsg);
+        free(moveMsg);
+    }
+    free(duplicateGame);
+    return 0;
 }
