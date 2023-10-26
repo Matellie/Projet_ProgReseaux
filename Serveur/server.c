@@ -336,6 +336,13 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       SET_BIO texte_bio
       */
       char * texte_bio = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (texte_bio == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : SET_BIO [text_bio]");
+         return;
+      }
+
       strncpy(clients[indexClient].bio, texte_bio, BUF_SIZE - 1);
    }
    else if(strcmp(cmd, "GET_BIO") == 0)
@@ -345,6 +352,12 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       GET_BIO pseudo
       */
       char * pseudo = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (pseudo == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : GET_BIO [pseudo]");
+         return;
+      }
 
       // Find index of the pseudo
       int indexPseudo = -1;
@@ -378,6 +391,13 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char * receiver = strtok(NULL, " ");
       char * message = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (receiver == NULL || receiver == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : CHAT [pseudo] [message]");
+         return;
+      }
+
       send_message_to_client(clients, sender, receiver, message, actual);
    }
    else if(strcmp(cmd, "DEFIER") == 0)
@@ -387,6 +407,12 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       DEFIER pseudo
       */
       char * pseudo = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (pseudo == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : DEFIER [pseudo]");
+         return;
+      }
 
       // Find index of the pseudo
       int indexPseudo = -1;
@@ -432,6 +458,12 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       ACCEPTER pseudo
       */
       char * pseudo = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (pseudo == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : ACCEPTER [pseudo]");
+         return;
+      }
 
       // Find index of the pseudo
       int indexPseudo = -1;
@@ -516,6 +548,12 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       REFUSER pseudo
       */
       char * pseudo = strtok(NULL, "\0");
+      
+      // Security in case not enough arguments have been provided
+      if (pseudo == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : REFUSER [pseudo]");
+         return;
+      }
 
       // Find index of the defi
       int indexDefi = -1;
@@ -574,6 +612,27 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       JOUER slot
       */
       
+   } 
+   else if(strcmp(cmd, "LISTE_DEFI") == 0)
+   {
+      /* 
+      Format de la requete:
+      LISTE_DEFI
+      */
+      char message[BUF_SIZE];
+      message[0] = 0;
+      strncat(message, "Personne qui defie -> Personne defiee\n", sizeof message - strlen(message) - 1);
+      for(int i=0; i<defis->actual; i++)
+      {
+         strncat(message, defis->listeDefis[i]->pseudoQuiDefie, sizeof message - strlen(message) - 1);
+         
+         strncat(message, " -> ", sizeof message - strlen(message) - 1);
+
+         strncat(message, defis->listeDefis[i]->pseudoEstDefie, sizeof message - strlen(message) - 1);
+         
+         strncat(message, "\n", sizeof message - strlen(message) - 1);
+      }
+      write_client(sender.sock, message);
    }
    else
    {
