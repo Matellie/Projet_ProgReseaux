@@ -309,7 +309,7 @@ static void parse_message(Client * clients, ListeDefi * defis, Client sender, in
       Format de la requete:
       HELP
       */
-      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, JOUER";
+      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER";
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
