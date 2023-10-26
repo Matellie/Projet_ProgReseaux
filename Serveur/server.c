@@ -554,7 +554,6 @@ static void parse_message(Client * clients, ListeDefi * defis, Client sender, in
       Format de la requete:
       JOUER slot
       */
-      printf("%s : JOUER\n", sender.name);
       //int slot = atoi(strtok(NULL, " "));
       //play_awale_move(sender, slot);
    }
