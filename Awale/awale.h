@@ -3,7 +3,7 @@
 
 #define MAX_AWALE_MOVES 1000
 
-struct AwaleGame {
+typedef struct {
     char* player1;
     char* player2;
     int player1Score;
@@ -13,17 +13,17 @@ struct AwaleGame {
     int nextMoveInSequence;
     int moveSequence[1000];
     bool isFinished;
-};
+} AwaleGame;
 
-int createGame(struct AwaleGame* newGame);
-int jouer(struct AwaleGame* game, int slot, char* result);
-int gameToString(struct AwaleGame* game, char* result);
-int askColumn(struct AwaleGame* game, char* result);
-int registerMove(struct AwaleGame* game, int slot);
-int playAwale(struct AwaleGame* game, int slot);
-int endGame(struct AwaleGame* game);
+int createGame(AwaleGame* newGame);
+int jouer(AwaleGame* game, int slot, char* result);
+int gameToString(AwaleGame* game, char* result);
+int askColumn(AwaleGame* game, char* result);
+int registerMove(AwaleGame* game, int slot);
+int playAwale(AwaleGame* game, int slot);
+int endGame(AwaleGame* game);
 int showWinner(int winner, char* result);
 char* showError(int error);
-int replayGame(struct AwaleGame* game, char* result);
+int replayGame(AwaleGame* game, char* result);
 
 #endif

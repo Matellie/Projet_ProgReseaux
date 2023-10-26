@@ -6,7 +6,7 @@
 #include "awale.h"
 
 int main(int argc, char **argv){
-    struct AwaleGame* game = malloc(sizeof(struct AwaleGame));
+    AwaleGame* game = malloc(sizeof(AwaleGame));
     createGame(game);
     int slot;
     char* text = malloc(sizeof(char)*1000);
@@ -33,7 +33,7 @@ int main(int argc, char **argv){
     return 0;
 }
 
-int jouer(struct AwaleGame* game, int slot, char* result){
+int jouer(AwaleGame* game, int slot, char* result){
     int error = playAwale(game, slot);
     char* boardMsg = malloc(sizeof(char)*500);
     gameToString(game, boardMsg);
@@ -60,7 +60,7 @@ int jouer(struct AwaleGame* game, int slot, char* result){
     return 0;
 }
 
-int gameToString(struct AwaleGame* game, char* result){
+int gameToString(AwaleGame* game, char* result){
     char separator[] = "+--+--+--+--+--+--+\n"; 
     char endOfLine[] = "|\n";
     strcpy(result,separator);
@@ -95,7 +95,7 @@ int gameToString(struct AwaleGame* game, char* result){
     return 0;
 }
 
-int askColumn(struct AwaleGame* game, char* result){
+int askColumn(AwaleGame* game, char* result){
     char temp[200];
     sprintf(temp, "Current player : %d\n", game->currentPlayer);
     strcpy(result,temp);
@@ -104,7 +104,7 @@ int askColumn(struct AwaleGame* game, char* result){
     return 0;
 }
 
-int createGame(struct AwaleGame* newGame){
+int createGame(AwaleGame* newGame){
     newGame->player1Score = 0;
     newGame->player2Score = 0;
     for (int i=0; i<12; i++){
@@ -116,14 +116,14 @@ int createGame(struct AwaleGame* newGame){
     return 0;
 }
 
-int registerMove(struct AwaleGame* game, int slot){
+int registerMove(AwaleGame* game, int slot){
     if (game->nextMoveInSequence >= MAX_AWALE_MOVES ) return -1; /*Error, move limit has been reached */
 
     game->moveSequence[game->nextMoveInSequence++] = slot;
     return 0;
 }
 
-int playAwale(struct AwaleGame* game, int slot){
+int playAwale(AwaleGame* game, int slot){
     slot -= 1; // To use 0-based index.
     if (slot < 0 || slot > 5) return -1;
 
@@ -217,7 +217,7 @@ int playAwale(struct AwaleGame* game, int slot){
     return 0;
 }
 
-int endGame(struct AwaleGame* game){
+int endGame(AwaleGame* game){
     int i;
     int winner = (game->player1Score > game->player2Score ? 1 : 2);
 
@@ -268,8 +268,8 @@ char* showError(int error){
     return "Unhandled Error\n";
 }
 
-int replayGame(struct AwaleGame* game, char* result){
-    struct AwaleGame* duplicateGame = malloc(sizeof(struct AwaleGame));
+int replayGame(AwaleGame* game, char* result){
+    AwaleGame* duplicateGame = malloc(sizeof(AwaleGame));
     createGame(duplicateGame);
     char replayMsg[] = "Replay of the game :\n\n";
     strcpy(result,replayMsg);
