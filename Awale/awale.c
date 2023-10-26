@@ -117,7 +117,7 @@ int createGame(AwaleGame* newGame){
 }
 
 int registerMove(AwaleGame* game, int slot){
-    if (game->nextMoveInSequence >= MAX_AWALE_MOVES ) return -1; /*Error, move limit has been reached */
+    if (game->nextMoveInSequence >= MAX_AWALE_MOVES ) return MOVE_LIMIT_REACHED_ERROR; /*Error, move limit has been reached */
 
     game->moveSequence[game->nextMoveInSequence++] = slot;
     return 0;
@@ -125,7 +125,7 @@ int registerMove(AwaleGame* game, int slot){
 
 int playAwale(AwaleGame* game, int slot){
     slot -= 1; // To use 0-based index.
-    if (slot < 0 || slot > 5) return -1;
+    if (slot < 0 || slot > 5) return INVALID_SLOT_ERROR;
 
     int i;
     if (game->currentPlayer == 2)
@@ -138,7 +138,7 @@ int playAwale(AwaleGame* game, int slot){
 
     
     int nbBeads =  previewArray[slot];
-    if (nbBeads == 0) return -1; /* Case when player choose and empty slot */
+    if (nbBeads == 0) return EMPTY_SLOT_ERROR; /* Case when player choose and empty slot */
     
     /* Take the beads out of the selected slot*/
     previewArray[slot] = 0;
@@ -196,7 +196,7 @@ int playAwale(AwaleGame* game, int slot){
     }
 
     /* Return if a famine was generated */
-    if (famine) return -1;
+    if (famine) return FAMINE_MOVE_ERROR;
 
     /* Else update the game*/
 
@@ -256,14 +256,24 @@ int endGame(AwaleGame* game){
 }
 
 int showWinner(int winner, char* result){
-    sprintf(result, "\nPlayer %d won !\nPlayer %d is the rice master !\n", winner, winner);
+    sprintf(result, "\nPlayer %d won !\nPlayer %d is the beans master !\n", winner, winner);
     return 0;
 }
 
 char* showError(int error){
     switch (error){
-        case -1 :
-            return "Wrong input !\n";
+        case INVALID_SLOT_ERROR :
+            return "Invalid input : Move must be between 1 and 6 (included) !\n";
+            break;
+        case EMPTY_SLOT_ERROR :
+            return "Invalid move : The selected move was an empty slot !\n";
+            break;
+        case FAMINE_MOVE_ERROR :
+            return "Invalid move : The selected move generated a famine !\n";
+            break;
+        case MOVE_LIMIT_REACHED_ERROR :
+            return "Error : Move has been player when move limit was already reached ! \n";
+            break;
     }
     return "Unhandled Error\n";
 }

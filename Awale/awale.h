@@ -2,8 +2,15 @@
 #define AWALE_H
 
 #define MAX_AWALE_MOVES 1000
+#define MAX_GAMES 100
 
-typedef struct {
+#define INVALID_SLOT_ERROR -1
+#define EMPTY_SLOT_ERROR -2
+#define FAMINE_MOVE_ERROR -3
+#define MOVE_LIMIT_REACHED_ERROR -4
+
+typedef struct 
+{
     char* player1;
     char* player2;
     int player1Score;
@@ -14,6 +21,12 @@ typedef struct {
     int moveSequence[1000];
     bool isFinished;
 } AwaleGame;
+
+typedef struct 
+{
+    AwaleGame* listeAwales[MAX_GAMES];
+    int actual;
+} ListeAwale;
 
 int createGame(AwaleGame* newGame);
 int jouer(AwaleGame* game, int slot, char* result);
