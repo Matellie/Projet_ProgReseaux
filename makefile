@@ -1,3 +1,10 @@
+server:
+	cd Serveur && \
+	gcc server.c awale.c -o server
+
+run-server: server
+	./Serveur/server
+
 awale:
 	cd Awale && gcc awale.c -o awale
 

@@ -1,37 +1,32 @@
-#include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "awale.h"
 
-int main(int argc, char **argv){
-    AwaleGame* game = malloc(sizeof(AwaleGame));
-    createGame(game);
-    int slot;
-    char* text = malloc(sizeof(char)*1000);
-    askColumn(game,text);
-    printf("%s",text);
-    free(text);
-    while(game->isFinished == false){
-        scanf("%d", &slot);
-        text = malloc(sizeof(char)*1000);
-        jouer(game, slot, text);
-        printf("%s", text);
-        free(text);
-    }
-    printf("\nReplay of the game ? (1(yes)/0(no)) : ");
-    scanf("%d", &slot);
-    if (slot){
-        text = malloc(sizeof(char)*1000*game->nextMoveInSequence);
-        replayGame(game,text);
-        printf("\n%s\n",text);
-        free(text);
-    }
-    free(game);
-    printf("GoodBye !\n");
-    return 0;
-}
+// int main(int argc, char **argv){
+//     AwaleGame* game = malloc(sizeof(AwaleGame));
+//     createGame(game);
+//     int slot;
+//     char* text = malloc(sizeof(char)*1000);
+//     askColumn(game,text);
+//     printf("%s",text);
+//     free(text);
+//     while(game->isFinished == false){
+//         scanf("%d", &slot);
+//         text = malloc(sizeof(char)*1000);
+//         jouer(game, slot, text);
+//         printf("%s", text);
+//         free(text);
+//     }
+//     printf("\nReplay of the game ? (1(yes)/0(no)) : ");
+//     scanf("%d", &slot);
+//     if (slot){
+//         text = malloc(sizeof(char)*1000*game->nextMoveInSequence);
+//         replayGame(game,text);
+//         printf("\n%s\n",text);
+//         free(text);
+//     }
+//     free(game);
+//     printf("GoodBye !\n");
+//     return 0;
+// }
 
 int jouer(AwaleGame* game, int slot, char* result){
     int error = playAwale(game, slot);
@@ -97,10 +92,10 @@ int gameToString(AwaleGame* game, char* result){
 
 int askColumn(AwaleGame* game, char* result){
     char temp[200];
-    sprintf(temp, "Current player : %d\n", game->currentPlayer);
-    strcpy(result,temp);
+    // sprintf(temp, "Current player : %d\n", game->currentPlayer);
+    // strcpy(result,temp);
     sprintf(temp, "Choose a slot (1-6) : ");
-    strcat(result, temp);
+    strcpy(result, temp);
     return 0;
 }
 

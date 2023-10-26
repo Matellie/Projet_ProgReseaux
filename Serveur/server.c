@@ -5,7 +5,8 @@
 
 #include "server.h"
 #include "client.h"
-#include "listeDefi.h"
+#include "defi.h"
+#include "awale.h"
 
 static void init(void)
 {
@@ -43,7 +44,8 @@ static void app(void)
    ListeDefi listeDeDefis; // IL FAUDRAIT UNE HASHMAP
    listeDeDefis.actual = 0;
    /* an array for all games */
-
+   ListeAwale listeDeAwale;
+   listeDeAwale.actual = 0;
 
    fd_set rdfs;
 
@@ -127,11 +129,11 @@ static void app(void)
                }
                else
                {
-                  parse_message(clients, &listeDeDefis, client, i, buffer, actual);
-                  for(int i=0; i<listeDeDefis.actual; i++)
-                  {
-                     printf("%d %s %s  |||  ", i, listeDeDefis.listeDefis[i]->pseudoQuiDefie, listeDeDefis.listeDefis[i]->pseudoEstDefie);
-                  }
+                  parse_message(clients, &listeDeDefis, &listeDeAwale, client, i, buffer, actual);
+                  // for(int i=0; i<listeDeDefis.actual; i++)
+                  // {
+                  //    printf("%d %s %s  |||  ", i, listeDeDefis.listeDefis[i]->pseudoQuiDefie, listeDeDefis.listeDefis[i]->pseudoEstDefie);
+                  // }
                }
                break;
             }
@@ -290,15 +292,15 @@ static void write_client(SOCKET sock, const char *buffer)
    }
 }
 
-static void play_awale_move(Client client, int slot)
-{
-   // Recuperer la bonne partie
-   // Jouer le coup
-   // Si coup ok et bon sender -> renvoyer nouveau plateau
-   // Sinon -> renvoyer plateau et message erreur
-}
+// static void play_awale_move(Client client, int slot)
+// {
+//    // Recuperer la bonne partie
+//    // Jouer le coup
+//    // Si coup ok et bon sender -> renvoyer nouveau plateau
+//    // Sinon -> renvoyer plateau et message erreur
+// }
 
-static void parse_message(Client * clients, ListeDefi * defis, Client sender, int indexClient, char *buffer, int actual)
+static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awales, Client sender, int indexClient, char *buffer, int actual)
 {
    printf("parse_message\n");
    char * cmd = strtok(buffer, " ");
@@ -410,6 +412,7 @@ static void parse_message(Client * clients, ListeDefi * defis, Client sender, in
          strncat(message, "' pour refuser la partie", sizeof message - strlen(message) - 1);
          write_client(clients[indexPseudo].sock, message);
 
+         // Créer un défi
          Defi * newDefi = malloc(sizeof(Defi));
          strncpy(newDefi->pseudoQuiDefie, sender.name, BUF_SIZE - 1);
          strncpy(newDefi->pseudoEstDefie, pseudo, BUF_SIZE - 1);
@@ -470,13 +473,29 @@ static void parse_message(Client * clients, ListeDefi * defis, Client sender, in
             write_client(clients[indexPseudo].sock, message);
 
             // Créer le jeu d'Awale
-
+            AwaleGame * newAwale = malloc(sizeof(AwaleGame));
+            // TODO : PLAYER 1 ET PLAYER 2 ALEATOIRE
+            strncpy(newAwale->player1, sender.name, BUF_SIZE - 1);
+            strncpy(newAwale->player2, pseudo, BUF_SIZE - 1);
+            createGame(newAwale);
+            // Mettre le jeu dans la liste de parties
+            awales->listeAwales[awales->actual] = newAwale;
+            (awales->actual)++;
 
             // Détruire le défi
             free(defis->listeDefis[indexDefi]);
             memmove(defis->listeDefis + indexDefi, defis->listeDefis + indexDefi + 1, (defis->actual - indexDefi - 1) * sizeof(*(defis->listeDefis)));
             printf("%d %d", indexDefi, defis->actual);
             (defis->actual)--;
+
+
+
+            /* Lancement de la partie */
+            char * gameString = malloc(sizeof(char)*BUF_SIZE);
+            gameToString(newAwale, gameString);
+            write_client(sender.sock, gameString);
+            write_client(clients[indexClient].sock, gameString);
+            free(gameString);
          }
          else
          {
@@ -554,8 +573,7 @@ static void parse_message(Client * clients, ListeDefi * defis, Client sender, in
       Format de la requete:
       JOUER slot
       */
-      //int slot = atoi(strtok(NULL, " "));
-      //play_awale_move(sender, slot);
+      
    }
    else
    {

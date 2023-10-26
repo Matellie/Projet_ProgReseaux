@@ -1,6 +1,11 @@
 #ifndef AWALE_H
 #define AWALE_H
 
+#include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #define MAX_AWALE_MOVES 1000
 #define MAX_GAMES 100
 
@@ -9,10 +14,12 @@
 #define FAMINE_MOVE_ERROR -3
 #define MOVE_LIMIT_REACHED_ERROR -4
 
+#define BUF_SIZE2    1024
+
 typedef struct 
 {
-    char* player1;
-    char* player2;
+    char player1[BUF_SIZE2];
+    char player2[BUF_SIZE2];
     int player1Score;
     int player2Score;
     int currentPlayer;
