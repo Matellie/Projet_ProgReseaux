@@ -2,14 +2,19 @@
 
 server:
 	cd Serveur && \
-	gcc server.c awale.c -o server
+	gcc -Wall server.c awale.c -o server
 
 run-server: server
 	./Serveur/server
 
+valgrind-server:
+	cd Serveur && \
+	gcc -Wall -g server.c awale.c -o server && \
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./server
+
 client:
 	cd Client && \
-	gcc client.c -o client
+	gcc -Wall client.c -o client
 
 alice:
 	cd Client && \
@@ -25,12 +30,13 @@ charles:
 
 
 awale:
-	cd Awale && gcc awale.c -o awale
+	cd Serveur && \
+	gcc -Wall awale.c -o awale
 
 run-awale: awale
-	cd Awale && ./awale
+	cd Serveur && ./awale
 
 valgrind-awale:
-	cd Awale && \
+	cd Serveur && \
 	gcc -Wall -g awale.c -o awale && \
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./awale

@@ -82,7 +82,7 @@ static void app(void)
       {
          /* new client */
          SOCKADDR_IN csin = { 0 };
-         size_t sinsize = sizeof csin;
+         socklen_t sinsize = sizeof csin;
          int csock = accept(sock, (SOCKADDR *)&csin, &sinsize);
          if(csock == SOCKET_ERROR)
          {
@@ -507,9 +507,10 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
             // Créer le jeu d'Awale
             AwaleGame * newAwale = malloc(sizeof(AwaleGame));
             // TODO : PLAYER 1 ET PLAYER 2 ALEATOIRE
-            strncpy(newAwale->player1, sender.name, BUF_SIZE - 1);
-            strncpy(newAwale->player2, pseudo, BUF_SIZE - 1);
+            strcpy(newAwale->player1, sender.name);
+            strcpy(newAwale->player2, pseudo);
             createGame(newAwale);
+
             // Mettre le jeu dans la liste de parties
             awales->listeAwales[awales->actual] = newAwale;
             (awales->actual)++;
@@ -517,16 +518,13 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
             // Détruire le défi
             free(defis->listeDefis[indexDefi]);
             memmove(defis->listeDefis + indexDefi, defis->listeDefis + indexDefi + 1, (defis->actual - indexDefi - 1) * sizeof(*(defis->listeDefis)));
-            printf("%d %d", indexDefi, defis->actual);
             (defis->actual)--;
-
-
 
             /* Lancement de la partie */
             char * gameString = malloc(sizeof(char)*BUF_SIZE);
             gameToString(newAwale, gameString);
             write_client(sender.sock, gameString);
-            write_client(clients[indexClient].sock, gameString);
+            write_client(clients[indexPseudo].sock, gameString);
             free(gameString);
          }
          else
@@ -575,7 +573,6 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          // Détruire le défi
          free(defis->listeDefis[indexDefi]);
          memmove(defis->listeDefis + indexDefi, defis->listeDefis + indexDefi + 1, (defis->actual - indexDefi - 1) * sizeof(*(defis->listeDefis)));
-         printf("%d %d", indexDefi, defis->actual);
          (defis->actual)--;
 
          strncpy(message, "Le défi a été réduit au silence ! :)", BUF_SIZE - 1);
@@ -625,17 +622,39 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       for(int i=0; i<defis->actual; i++)
       {
          strncat(message, defis->listeDefis[i]->pseudoQuiDefie, sizeof message - strlen(message) - 1);
-         
          strncat(message, " -> ", sizeof message - strlen(message) - 1);
-
          strncat(message, defis->listeDefis[i]->pseudoEstDefie, sizeof message - strlen(message) - 1);
-         
+         strncat(message, "\n", sizeof message - strlen(message) - 1);
+      }
+      write_client(sender.sock, message);
+   }
+   else if(strcmp(cmd, "LISTE_PARTIE") == 0)
+   {
+      printf("\nListe Partie\n");
+      /* 
+      Format de la requete:
+      LISTE_PARTIE
+      */
+      char message[BUF_SIZE];
+      message[0] = 0;
+      for(int i=0; i<awales->actual; i++)
+      {
+         strncat(message, "Partie ", sizeof message - strlen(message) - 1);
+         char * number = malloc(10*sizeof(char));
+         sprintf(number,"%d",i);
+         strncat(message, number, sizeof message - strlen(message) - 1);
+         free(number);
+         strncat(message, " : ", sizeof message - strlen(message) - 1);
+         strncat(message, awales->listeAwales[i]->player1, sizeof message - strlen(message) - 1);
+         strncat(message, " vs ", sizeof message - strlen(message) - 1);
+         strncat(message, awales->listeAwales[i]->player2, sizeof message - strlen(message) - 1);
          strncat(message, "\n", sizeof message - strlen(message) - 1);
       }
       write_client(sender.sock, message);
    }
    else
    {
+      write_client(sender.sock, "Commande non reconnue - Entrer HELP pour voir la liste des commandes disponibles\n");
       printf("%s : CMD non reconnue\n", sender.name);
    }
 }
