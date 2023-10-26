@@ -393,7 +393,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       char * message = strtok(NULL, "\0");
 
       // Security in case not enough arguments have been provided
-      if (receiver == NULL || receiver == NULL){
+      if (receiver == NULL || message == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : CHAT [pseudo] [message]");
          return;
       }
@@ -429,6 +429,50 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       message[0] = 0;
       if(indexPseudo != -1)
       {
+         // Vérifier que un défi n'a pas déjà été lancé entre les 2 clients 
+         bool defiExisteDeja = false;
+         for (int i=0; i<defis->actual; ++i){
+            if (( // Vérifie que ce joueur ne vous a pas déjà défié 
+                  strcmp(defis->listeDefis[i]->pseudoEstDefie, sender.name) == 0 
+                  && strcmp(defis->listeDefis[i]->pseudoQuiDefie, pseudo) == 0
+               ) || ( // Vérifie que vous n'avez pas déjà défié ce joueur 
+                  strcmp(defis->listeDefis[i]->pseudoEstDefie, pseudo) == 0
+                  && strcmp(defis->listeDefis[i]->pseudoQuiDefie, sender.name) == 0
+               ))
+            {
+               defiExisteDeja = true;
+               break;
+            }
+         }
+
+         if (defiExisteDeja){
+            strncpy(message, "Un defi existe deja entre vous deux.\n", sizeof message - strlen(message) - 1);
+            write_client(sender.sock, message);
+            return;
+         }
+
+         // Vérifier qu'une partie n'est pas déjà en cours entre les 2 clients
+         int idPartie = -1;
+         for (int i=0; i<awales->actual; ++i)
+         {
+            if ((
+                  strcmp(awales->listeAwales[i]->player1, sender.name) == 0 
+                  && strcmp(awales->listeAwales[i]->player2, pseudo) == 0
+               ) || (
+                  strcmp(awales->listeAwales[i]->player1, pseudo) == 0
+                  && strcmp(awales->listeAwales[i]->player2, sender.name) == 0
+               ))
+            {
+               idPartie = i;
+               break;
+            }
+         }
+
+         if (idPartie > -1){
+            write_client(clients[indexClient].sock, "Une partie existe déjà entre vous deux.\n");
+            return;
+         }
+
          strncpy(message, "!!! ", BUF_SIZE - 1);
          strncat(message, sender.name, sizeof message - strlen(message) - 1);
          strncat(message, " vous défie au jeu d'Awale !!!\nRépondez par 'ACCEPTER ", sizeof message - strlen(message) - 1);
@@ -606,9 +650,63 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
    {
       /* 
       Format de la requete:
-      JOUER slot
-      */
+      JOUER pseudo_adversaire slot
+      */      
+      char * pseudoAdversaire = strtok(NULL, " ");
+      char * slotStr = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (pseudoAdversaire == NULL || slotStr == NULL)
+      {
+         write_client(sender.sock, "Format invalide !\nFormat : JOUER [pseudo_adversaire] [case]");
+         return;
+      }
+
+      // Vérifier qu'une partie existe entre les 2 joueurs
+      int idPartie = -1;
+      for (int i=0; i<awales->actual; ++i)
+      {
+         if ((
+               strcmp(awales->listeAwales[i]->player1, sender.name) == 0 
+               && strcmp(awales->listeAwales[i]->player2, pseudoAdversaire) == 0
+            ) || (
+               strcmp(awales->listeAwales[i]->player1, pseudoAdversaire) == 0
+               && strcmp(awales->listeAwales[i]->player2, sender.name) == 0
+            ))
+         {
+            idPartie = i;
+            break;
+         }
+      }
+      if (idPartie == -1){
+         write_client(sender.sock, "Aucune partie n'existe entre vous deux.\n");
+         return;
+      }
+
+      // Vérifier que la partie n'est pas terminée
+      if (awales->listeAwales[idPartie]->isFinished){
+         write_client(sender.sock, "La partie entre vous deux est terminée.\n");
+         return;
+      }
+
+      // Vérifier que c'est bien le tour de ce client
+      int joueurQuiDoitJouer = awales->listeAwales[idPartie]->currentPlayer;
+      if ((joueurQuiDoitJouer == 1 && strcmp(awales->listeAwales[idPartie]->player1,sender.name) != 0)
+         || (joueurQuiDoitJouer == 2 && strcmp(awales->listeAwales[idPartie]->player2, sender.name) !=0))
+      {
+         write_client(sender.sock, "Ce n'est pas ton tour de jouer ! :O\n");
+         return;
+      }
       
+      int slot = atoi(slotStr);
+
+      char* messageCoup = malloc(sizeof(char)*1000);
+      jouer(awales->listeAwales[idPartie], slot, messageCoup);
+      write_client(sender.sock, messageCoup);
+      // TODO : Afficher aussi à l'adversaire !
+      free(messageCoup);
+      // vérifier que la partie existe.
+
    } 
    else if(strcmp(cmd, "LISTE_DEFI") == 0)
    {
