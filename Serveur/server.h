@@ -35,6 +35,7 @@ typedef struct in_addr IN_ADDR;
 #define BUF_SIZE    1024
 
 #include "client.h"
+#include "listeDefi.h"
 
 static void init(void);
 static void end(void);
@@ -48,7 +49,7 @@ static void send_message_to_self(Client client, const char *buffer);
 static void send_message_to_client(Client * clients, Client sender, char *receiver, const char *buffer, int actual);
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
-static void parse_message(Client * clients, Client sender, int indexClient, char *buffer, int actual);
+static void parse_message(Client * clients, ListeDefi * defis, Client sender, int indexClient, char *buffer, int actual);
 static void play_awale_move(Client client, int slot);
 
 #endif /* guard */
