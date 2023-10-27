@@ -52,10 +52,10 @@ int jouer(AwaleGame* game, int slot, char* result){
 
 int gameToString(AwaleGame* game, char* result){
     char separator[] = "+--+--+--+--+--+--+\n"; 
-    char firstSeparator[BUF_SIZE2*2];
-    sprintf(firstSeparator, "| %s\n", game->player1);
-    char secondSeparator[BUF_SIZE2*2];
-    sprintf(secondSeparator, "| %s\n", game->player1);
+    char firstEndOfLine[BUF_SIZE2*2];
+    sprintf(firstEndOfLine, "| %s\n", game->player1);
+    char secondEndOfLine[BUF_SIZE2*2];
+    sprintf(secondEndOfLine, "| %s\n", game->player2);
     char endOfLine[] = "|\n";
     strcpy(result,separator);
     for (int i=0; i<6; ++i){
@@ -66,8 +66,8 @@ int gameToString(AwaleGame* game, char* result){
             sprintf(slot, "|%d", game->board[i]);
         strcat(result,slot);
     }
-    strcat(result,endOfLine);
-    strcat(result,firstSeparator);
+    strcat(result,firstEndOfLine);
+    strcat(result,separator);
     for (int i=11; i>5; --i){
         char slot[10];
         if (game->board[i] < 10)
@@ -76,8 +76,8 @@ int gameToString(AwaleGame* game, char* result){
             sprintf(slot, "|%d", game->board[i]);
         strcat(result,slot);
     }
-    strcat(result,endOfLine);
-    strcat(result,secondSeparator);
+    strcat(result,secondEndOfLine);
+    strcat(result,separator);
     char scores[] = "Scores : \n";
     char player1[BUF_SIZE2*2];
     char player2[BUF_SIZE2*2];
