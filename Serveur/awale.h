@@ -16,8 +16,14 @@
 
 #define BUF_SIZE2    1024
 
+typedef struct{
+    char* listeDeObserver[BUF_SIZE2];
+    int actual;
+} ListeObserver;
+
 typedef struct 
 {
+    ListeObserver observers;
     char player1[BUF_SIZE2];
     char player2[BUF_SIZE2];
     int player1Score;

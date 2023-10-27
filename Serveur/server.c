@@ -727,6 +727,19 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       // Envoyer le plateau avec le nouveau coup à la personne qui a joué et à son adversaire
       write_client(sender.sock, messageCoup);
       write_client(clients[indexPseudo].sock, messageCoup);
+      // Envoyer le plateau avec le nouveau coup aux observers
+      for (int i = 0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
+      {
+         // Find index of the pseudo
+         for(int i=0; i<actual; i++)
+         {
+            if(strcmp(pseudoAdversaire, clients[i].name) == 0)
+            {
+               write_client(clients[i].sock, messageCoup);
+               break;
+            }
+         }
+      }
       free(messageCoup);
    } 
    else if(strcmp(cmd, "LISTE_DEFI") == 0)
@@ -770,6 +783,51 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          strncat(message, "\n", sizeof message - strlen(message) - 1);
       }
       write_client(sender.sock, message);
+   } 
+   else if (strcmp(cmd, "OBSERVER") == 0) 
+   {
+      /* 
+      Format de la requete:
+      OBSERVER joueur1 joueur2
+      */
+      char * joueur1 = strtok(NULL, " ");
+      char * joueur2 = strtok(NULL, "\0");
+
+      // Security in case not enough arguments have been provided
+      if (joueur1 == NULL || joueur2 == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : CHAT [joueur1] [joueur2]\n");
+         return;
+      }
+
+      // On ne peut pas s'observer
+      if (strcmp(joueur1, sender.name) == 0 && strcmp(joueur2, sender.name) == 0)
+      {
+         write_client(clients[indexClient].sock, "Tu ne peut pas t'observer toi-même.\n");
+         return;
+      }
+
+      // Vérifier qu'une partie existe entre les 2 joueurs
+      int idPartie = -1;
+      for (int i=0; i<awales->actual; ++i)
+      {
+         if ((
+               strcmp(awales->listeAwales[i]->player1, joueur1) == 0 
+               && strcmp(awales->listeAwales[i]->player2, joueur2) == 0
+            ) || (
+               strcmp(awales->listeAwales[i]->player1, joueur2) == 0
+               && strcmp(awales->listeAwales[i]->player2, joueur1) == 0
+            ))
+         {
+            idPartie = i;
+            break;
+         }
+      }
+      if (idPartie == -1){
+         write_client(sender.sock, "Aucune partie n'existe entre les deux joueurs.\n");
+         return;
+      }
+
+      awales->listeAwales[idPartie]->observers.listeDeObserver[awales->listeAwales[idPartie]->observers.actual] = sender.name;
    }
    else
    {
