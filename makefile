@@ -1,5 +1,3 @@
-
-
 server:
 	cd Serveur && \
 	gcc -Wall server.c awale.c -o server

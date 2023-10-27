@@ -47,6 +47,8 @@ static void app(void)
    ListeAwale listeDeAwale;
    listeDeAwale.actual = 0;
 
+   srand( time( NULL ) );
+
    fd_set rdfs;
 
    while(1)
@@ -199,7 +201,7 @@ static void send_message_to_self(Client sender, const char *buffer)
 
 static void send_message_to_client(Client * clients, Client sender, char *receiver, const char *buffer, int actual)
 {
-   printf("send_message_to_client");
+   printf("send_message_to_client\n");
    
    // Find index of the receiver
    int indexReceiver = -1;
@@ -292,14 +294,6 @@ static void write_client(SOCKET sock, const char *buffer)
    }
 }
 
-// static void play_awale_move(Client client, int slot)
-// {
-//    // Recuperer la bonne partie
-//    // Jouer le coup
-//    // Si coup ok et bon sender -> renvoyer nouveau plateau
-//    // Sinon -> renvoyer plateau et message erreur
-// }
-
 static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awales, Client sender, int indexClient, char *buffer, int actual)
 {
    printf("parse_message\n");
@@ -311,7 +305,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       Format de la requete:
       HELP
       */
-      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER";
+      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, LISTE_DEFI, LISTE_PARTIE";
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
@@ -551,8 +545,17 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
             // Créer le jeu d'Awale
             AwaleGame * newAwale = malloc(sizeof(AwaleGame));
             // TODO : PLAYER 1 ET PLAYER 2 ALEATOIRE
-            strcpy(newAwale->player1, sender.name);
-            strcpy(newAwale->player2, pseudo);
+            int alea = rand()%2;
+            if(alea == 0)
+            {
+               strcpy(newAwale->player1, sender.name);
+               strcpy(newAwale->player2, pseudo);
+            }
+            else
+            {
+               strcpy(newAwale->player2, sender.name);
+               strcpy(newAwale->player1, pseudo);
+            }
             createGame(newAwale);
 
             // Mettre le jeu dans la liste de parties
