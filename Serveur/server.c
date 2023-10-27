@@ -722,7 +722,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       
       int slot = atoi(slotStr);
 
-      char* messageCoup = malloc(sizeof(char)*1000);
+      char* messageCoup = malloc(sizeof(char)*BUF_SIZE);
       jouer(awales->listeAwales[idPartie], slot, messageCoup);
       // Envoyer le plateau avec le nouveau coup à la personne qui a joué et à son adversaire
       write_client(sender.sock, messageCoup);
