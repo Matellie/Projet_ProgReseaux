@@ -80,10 +80,13 @@ int gameToString(AwaleGame* game, char* result){
     strcat(result,endOfLine);
     strcat(result,separator);
     char scores[] = "Scores : \n";
-    char player1[40];
-    char player2[40];
+    char player1[50];
+    char player2[50];
     sprintf(player1, "player 1 : %d\n", game->player1Score);
     sprintf(player2, "player 2 : %d\n\n", game->player2Score);
+    char tourJoueur[BUF_SIZE2];
+    sprintf(tourJoueur, "C'est au tour de %s\n", (game->currentPlayer==1 ? game->player1 : game->player2));
+    strcat(result, tourJoueur);
     strcat(result,scores);
     strcat(result,player1);
     strcat(result,player2);

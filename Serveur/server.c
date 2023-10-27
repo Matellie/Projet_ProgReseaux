@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 
 #include "server.h"
 #include "client.h"
@@ -658,6 +659,24 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       char * pseudoAdversaire = strtok(NULL, " ");
       char * slotStr = strtok(NULL, "\0");
 
+      // Find index of the pseudo
+      int indexPseudo = -1;
+      for(int i=0; i<actual; i++)
+      {
+         if(strcmp(pseudoAdversaire, clients[i].name) == 0)
+         {
+            indexPseudo = i;
+            break;
+         }
+      }
+
+      // Verifier que l'adversaire est connecté
+      if(indexPseudo == -1)
+      {
+         write_client(sender.sock, "Cette personne n'est pas connectée ! :(\n");
+         return;
+      }
+
       // Security in case not enough arguments have been provided
       if (pseudoAdversaire == NULL || slotStr == NULL)
       {
@@ -705,11 +724,10 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
 
       char* messageCoup = malloc(sizeof(char)*1000);
       jouer(awales->listeAwales[idPartie], slot, messageCoup);
+      // Envoyer le plateau avec le nouveau coup à la personne qui a joué et à son adversaire
       write_client(sender.sock, messageCoup);
-      // TODO : Afficher aussi à l'adversaire !
+      write_client(clients[indexPseudo].sock, messageCoup);
       free(messageCoup);
-      // vérifier que la partie existe.
-
    } 
    else if(strcmp(cmd, "LISTE_DEFI") == 0)
    {
