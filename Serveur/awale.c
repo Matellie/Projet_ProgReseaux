@@ -84,11 +84,11 @@ int gameToString(AwaleGame* game, char* result){
     sprintf(player1, "%s : %d\n", game->player1, game->player1Score);
     sprintf(player2, "%s : %d\n\n", game->player2, game->player2Score);
     char tourJoueur[BUF_SIZE2];
-    sprintf(tourJoueur, "C'est au tour de %s\n", (game->currentPlayer==1 ? game->player1 : game->player2));
-    strcat(result, tourJoueur);
     strcat(result,scores);
     strcat(result,player1);
     strcat(result,player2);
+    sprintf(tourJoueur, "C'est au tour de %s\n", (game->currentPlayer==1 ? game->player1 : game->player2));
+    strcat(result, tourJoueur);
     return 0;
 }
 
