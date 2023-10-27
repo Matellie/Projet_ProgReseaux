@@ -42,7 +42,7 @@ static void app(void)
    /* an array for all clients */
    Client clients[MAX_CLIENTS];
    /* an array for all game requests */
-   ListeDefi listeDeDefis; // IL FAUDRAIT UNE HASHMAP
+   ListeDefi listeDeDefis;
    listeDeDefis.actual = 0;
    /* an array for all games */
    ListeAwale listeDeAwale;
@@ -124,7 +124,7 @@ static void app(void)
                if(c == 0)
                {
                   closesocket(clients[i].sock);
-                  remove_client(clients, i, &actual);
+                  remove_client(clients, &listeDeDefis, &listeDeAwale, i, &actual);
                   strncpy(buffer, client.name, BUF_SIZE - 1);
                   strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
                   send_message_to_all_clients(clients, client, actual, buffer, 1);
@@ -133,10 +133,6 @@ static void app(void)
                else
                {
                   parse_message(clients, &listeDeDefis, &listeDeAwale, client, i, buffer, actual);
-                  // for(int i=0; i<listeDeDefis.actual; i++)
-                  // {
-                  //    printf("%d %s %s  |||  ", i, listeDeDefis.listeDefis[i]->pseudoQuiDefie, listeDeDefis.listeDefis[i]->pseudoEstDefie);
-                  // }
                }
                break;
             }
@@ -158,13 +154,54 @@ static void clear_clients(Client *clients, int actual)
    }
 }
 
-static void remove_client(Client *clients, int to_remove, int *actual)
+static void remove_client(Client *clients, ListeDefi *defis, ListeAwale *awales, int to_remove, int *actual)
 {
    printf("remove_client\n");
+   char clientDeco[BUF_SIZE];
+   strcpy(clientDeco, clients[to_remove].name);
+
    /* we remove the client in the array */
    memmove(clients + to_remove, clients + to_remove + 1, (*actual - to_remove - 1) * sizeof(Client));
    /* number client - 1 */
    (*actual)--;
+
+   // Detruire les défis du client qui se déconnecte
+   for(int i=0; i<defis->actual; i++)
+   {
+      if(strcmp(clientDeco, defis->listeDefis[i]->pseudoQuiDefie) == 0 || 
+         strcmp(clientDeco, defis->listeDefis[i]->pseudoEstDefie) == 0)
+      {
+         free(defis->listeDefis[i]);
+         memmove(defis->listeDefis + i, defis->listeDefis + i + 1, (defis->actual - i - 1) * sizeof(*(defis->listeDefis)));
+         (defis->actual)--;
+         i--;
+      }
+   }
+
+   // Détruire ses parties
+   for(int i=0; i<awales->actual; i++)
+   {
+      if(strcmp(clientDeco, awales->listeAwales[i]->player1) == 0 || 
+         strcmp(clientDeco, awales->listeAwales[i]->player2) == 0)
+      {
+         free(awales->listeAwales[i]);
+         memmove(awales->listeAwales + i, awales->listeAwales + i + 1, (awales->actual - i - 1) * sizeof(*(awales->listeAwales)));
+         (awales->actual)--;
+         i--;
+      }
+      // Enlever le client de la liste des observateurs
+      else
+      {
+         for (int j=0; j<awales->listeAwales[i]->observers.actual; ++i)
+         {
+            if (strcmp(awales->listeAwales[i]->observers.listeDeObserver[j], clientDeco) == 0){
+               memmove(awales->listeAwales[i]->observers.listeDeObserver + j, awales->listeAwales[i]->observers.listeDeObserver + j + 1, (awales->listeAwales[i]->observers.actual - j - 1) * sizeof(*(awales->listeAwales[i]->observers.listeDeObserver)));
+               (awales->listeAwales[i]->observers.actual)--;
+               j--;
+            }
+         }
+      }
+   }
 }
 
 static void send_message_to_all_clients(Client *clients, Client sender, int actual, const char *buffer, char from_server)
@@ -185,6 +222,7 @@ static void send_message_to_all_clients(Client *clients, Client sender, int actu
          }
          strncat(message, buffer, sizeof message - strlen(message) - 1);
          write_client(clients[i].sock, message);
+         message[0] = 0;
       }
    }
 }
@@ -795,7 +833,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
 
       // Security in case not enough arguments have been provided
       if (joueur1 == NULL || joueur2 == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : CHAT [joueur1] [joueur2]\n");
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : OBSERVER [joueur1] [joueur2]\n");
          return;
       }
 
