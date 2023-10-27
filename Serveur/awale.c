@@ -30,7 +30,7 @@
 
 int jouer(AwaleGame* game, int slot, char* result){
     int error = playAwale(game, slot);
-    char* boardMsg = malloc(sizeof(char)*500);
+    char* boardMsg = malloc(sizeof(char)*BUF_SIZE2);
     gameToString(game, boardMsg);
     strcpy(result,boardMsg);
     free(boardMsg);
