@@ -56,7 +56,6 @@ int gameToString(AwaleGame* game, char* result){
     sprintf(firstEndOfLine, "| %s\n", game->player1);
     char secondEndOfLine[BUF_SIZE2*2];
     sprintf(secondEndOfLine, "| %s\n", game->player2);
-    char endOfLine[] = "|\n";
     strcpy(result,separator);
     for (int i=0; i<6; ++i){
         char slot[10];
