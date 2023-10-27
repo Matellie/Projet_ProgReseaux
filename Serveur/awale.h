@@ -38,7 +38,6 @@ typedef struct
 int createGame(AwaleGame* newGame);
 int jouer(AwaleGame* game, int slot, char* result);
 int gameToString(AwaleGame* game, char* result);
-int askColumn(AwaleGame* game, char* result);
 int registerMove(AwaleGame* game, int slot);
 int playAwale(AwaleGame* game, int slot);
 int endGame(AwaleGame* game);

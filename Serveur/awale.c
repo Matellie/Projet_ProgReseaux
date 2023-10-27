@@ -5,7 +5,7 @@
 //     createGame(game);
 //     int slot;
 //     char* text = malloc(sizeof(char)*1000);
-//     askColumn(game,text);
+//     gameToString(game,text);
 //     printf("%s",text);
 //     free(text);
 //     while(game->isFinished == false){
@@ -41,12 +41,7 @@ int jouer(AwaleGame* game, int slot, char* result){
         registerMove(game, slot);
     }
     int winner = endGame(game);
-    if (winner == 0){
-        char* askMsg = malloc(sizeof(char)*200);
-        askColumn(game, askMsg);
-        strcat(result, askMsg);
-        free(askMsg);
-    } else {
+    if (winner != 0){
         char* winnerMsg = malloc(sizeof(char)*60);
         showWinner(winner, winnerMsg);
         strcat(result,winnerMsg);
@@ -57,6 +52,10 @@ int jouer(AwaleGame* game, int slot, char* result){
 
 int gameToString(AwaleGame* game, char* result){
     char separator[] = "+--+--+--+--+--+--+\n"; 
+    char firstSeparator[BUF_SIZE2*2];
+    sprintf(firstSeparator, "| %s\n", game->player1);
+    char secondSeparator[BUF_SIZE2*2];
+    sprintf(secondSeparator, "| %s\n", game->player1);
     char endOfLine[] = "|\n";
     strcpy(result,separator);
     for (int i=0; i<6; ++i){
@@ -68,7 +67,7 @@ int gameToString(AwaleGame* game, char* result){
         strcat(result,slot);
     }
     strcat(result,endOfLine);
-    strcat(result,separator);
+    strcat(result,firstSeparator);
     for (int i=11; i>5; --i){
         char slot[10];
         if (game->board[i] < 10)
@@ -78,27 +77,18 @@ int gameToString(AwaleGame* game, char* result){
         strcat(result,slot);
     }
     strcat(result,endOfLine);
-    strcat(result,separator);
+    strcat(result,secondSeparator);
     char scores[] = "Scores : \n";
-    char player1[50];
-    char player2[50];
-    sprintf(player1, "player 1 : %d\n", game->player1Score);
-    sprintf(player2, "player 2 : %d\n\n", game->player2Score);
+    char player1[BUF_SIZE2*2];
+    char player2[BUF_SIZE2*2];
+    sprintf(player1, "%s : %d\n", game->player1, game->player1Score);
+    sprintf(player2, "%s : %d\n\n", game->player2, game->player2Score);
     char tourJoueur[BUF_SIZE2];
     sprintf(tourJoueur, "C'est au tour de %s\n", (game->currentPlayer==1 ? game->player1 : game->player2));
     strcat(result, tourJoueur);
     strcat(result,scores);
     strcat(result,player1);
     strcat(result,player2);
-    return 0;
-}
-
-int askColumn(AwaleGame* game, char* result){
-    char temp[200];
-    // sprintf(temp, "Current player : %d\n", game->currentPlayer);
-    // strcpy(result,temp);
-    sprintf(temp, "Choose a slot (1-6) : ");
-    strcpy(result, temp);
     return 0;
 }
 
