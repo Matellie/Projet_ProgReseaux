@@ -133,6 +133,15 @@ static void app(void)
                else
                {
                   parse_message(clients, &listeDeDefis, &listeDeAwale, client, i, buffer, actual);
+                  for(int i=0; i<listeDeAwale.actual; i++)
+                  {
+                     printf("Game : %d || ", listeDeAwale.actual);
+                     for(int j=0; j<listeDeAwale.listeAwales[i]->observers.actual; j++)
+                     {
+                        printf("Observeur : %s ", listeDeAwale.listeAwales[i]->observers.listeObservers[j]);
+                     }
+                     printf("\n");
+                  }
                }
                break;
             }
@@ -192,10 +201,12 @@ static void remove_client(Client *clients, ListeDefi *defis, ListeAwale *awales,
       // Enlever le client de la liste des observateurs
       else
       {
-         for (int j=0; j<awales->listeAwales[i]->observers.actual; ++i)
+         for (int j=0; j<awales->listeAwales[i]->observers.actual; j++)
          {
-            if (strcmp(awales->listeAwales[i]->observers.listeDeObserver[j], clientDeco) == 0){
-               memmove(awales->listeAwales[i]->observers.listeDeObserver + j, awales->listeAwales[i]->observers.listeDeObserver + j + 1, (awales->listeAwales[i]->observers.actual - j - 1) * sizeof(*(awales->listeAwales[i]->observers.listeDeObserver)));
+            if (strcmp(clientDeco, awales->listeAwales[i]->observers.listeObservers[j]) == 0)
+            {
+               free(awales->listeAwales[i]->observers.listeObservers[j]);
+               memmove(awales->listeAwales[i]->observers.listeObservers + j, awales->listeAwales[i]->observers.listeObservers + j + 1, (awales->listeAwales[i]->observers.actual - j - 1) * sizeof(*(awales->listeAwales[i]->observers.listeObservers)));
                (awales->listeAwales[i]->observers.actual)--;
                j--;
             }
@@ -766,20 +777,20 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       write_client(sender.sock, messageCoup);
       write_client(clients[indexPseudo].sock, messageCoup);
       // Envoyer le plateau avec le nouveau coup aux observers
-      for (int i = 0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
+      for (int i=0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
       {
          // Find index of the pseudo
-         for(int i=0; i<actual; i++)
+         for(int j=0; j<actual; j++)
          {
-            if(strcmp(pseudoAdversaire, clients[i].name) == 0)
+            if(strcmp(awales->listeAwales[idPartie]->observers.listeObservers[i], clients[j].name) == 0)
             {
-               write_client(clients[i].sock, messageCoup);
+               write_client(clients[j].sock, messageCoup);
                break;
             }
          }
       }
       free(messageCoup);
-   } 
+   }
    else if(strcmp(cmd, "LISTE_DEFI") == 0)
    {
       /* 
@@ -865,7 +876,10 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          return;
       }
 
-      awales->listeAwales[idPartie]->observers.listeDeObserver[awales->listeAwales[idPartie]->observers.actual] = sender.name;
+      char * observateur = malloc(sizeof(char)*BUF_SIZE);
+      strncpy(observateur, sender.name, BUF_SIZE - 1);
+      awales->listeAwales[idPartie]->observers.listeObservers[awales->listeAwales[idPartie]->observers.actual] = observateur;
+      (awales->listeAwales[idPartie]->observers.actual)++;
    }
    else
    {

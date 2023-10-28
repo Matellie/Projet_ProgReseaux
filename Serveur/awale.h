@@ -17,7 +17,7 @@
 #define BUF_SIZE2    1024
 
 typedef struct{
-    char* listeDeObserver[BUF_SIZE2];
+    char* listeObservers[BUF_SIZE2];
     int actual;
 } ListeObserver;
 
