@@ -903,7 +903,6 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       for (int i=0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
       {
          if (strcmp(awales->listeAwales[idPartie]->observers.listeObservers[i], sender.name) == 0){
-            free(awales->listeAwales[idPartie]->observers.listeObservers[i]);
             memmove(awales->listeAwales[idPartie]->observers.listeObservers + i, awales->listeAwales[idPartie]->observers.listeObservers + i + 1, (awales->listeAwales[idPartie]->observers.actual - i - 1) * sizeof(*(awales->listeAwales[idPartie]->observers.listeObservers)));
             (awales->listeAwales[idPartie]->observers.actual)--;
             return;
