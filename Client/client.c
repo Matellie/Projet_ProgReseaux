@@ -73,7 +73,7 @@ static void app(const char *address, const char *name)
       else if(FD_ISSET(sock, &rdfs))
       {
          int n = read_server(sock, buffer);
-         /* server down */
+         /* server down or username already taken */
          if(n == 0)
          {
             printf("Server disconnected !\n");
@@ -152,6 +152,11 @@ int main(int argc, char **argv)
    if(argc < 2)
    {
       printf("Usage : %s [address] [pseudo]\n", argv[0]);
+      return EXIT_FAILURE;
+   }
+   else if(argc < 3)
+   {
+      printf("Usage : %s %s [pseudo]\n", argv[0], argv[1]);
       return EXIT_FAILURE;
    }
 
