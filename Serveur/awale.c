@@ -28,20 +28,25 @@
 //     return 0;
 // }
 
-int jouer(AwaleGame* game, int slot, char* result){
+int jouer(AwaleGame* game, int slot, char* result)
+{
     int error = playAwale(game, slot);
     char* boardMsg = malloc(sizeof(char)*BUF_SIZE2);
     gameToString(game, boardMsg);
     strcpy(result,boardMsg);
     free(boardMsg);
-    if (error < 0){ /* If move was not accepted display the error */
+    if(error < 0)
+    { /* If move was not accepted display the error */
         char* errorMsg = showError(error);
         strcat(result,errorMsg);
-    } else { /* If move is accepted then register it*/
+    }
+    else
+    { /* If move is accepted then register it*/
         registerMove(game, slot);
     }
     int winner = endGame(game);
-    if (winner != 0){
+    if(winner != 0)
+    {
         char* winnerMsg = malloc(sizeof(char)*60);
         showWinner(winner, winnerMsg);
         strcat(result,winnerMsg);
@@ -50,16 +55,18 @@ int jouer(AwaleGame* game, int slot, char* result){
     return 0;
 }
 
-int gameToString(AwaleGame* game, char* result){
+int gameToString(AwaleGame* game, char* result)
+{
     char separator[] = "+--+--+--+--+--+--+\n"; 
     char firstEndOfLine[BUF_SIZE2*2];
     sprintf(firstEndOfLine, "| %s\n", game->player1);
     char secondEndOfLine[BUF_SIZE2*2];
     sprintf(secondEndOfLine, "| %s\n", game->player2);
     strcpy(result,separator);
-    for (int i=0; i<6; ++i){
+    for (int i=0; i<6; ++i)
+    {
         char slot[10];
-        if (game->board[i] < 10)
+        if(game->board[i] < 10)
             sprintf(slot, "| %d", game->board[i]);
         else
             sprintf(slot, "|%d", game->board[i]);
@@ -67,9 +74,10 @@ int gameToString(AwaleGame* game, char* result){
     }
     strcat(result,firstEndOfLine);
     strcat(result,separator);
-    for (int i=11; i>5; --i){
+    for (int i=11; i>5; --i)
+    {
         char slot[10];
-        if (game->board[i] < 10)
+        if(game->board[i] < 10)
             sprintf(slot, "| %d", game->board[i]);
         else
             sprintf(slot, "|%d", game->board[i]);
@@ -91,10 +99,12 @@ int gameToString(AwaleGame* game, char* result){
     return 0;
 }
 
-int createGame(AwaleGame* newGame){
+int createGame(AwaleGame* newGame)
+{
     newGame->player1Score = 0;
     newGame->player2Score = 0;
-    for (int i=0; i<12; i++){
+    for(int i=0; i<12; i++)
+    {
         newGame->board[i] = 4;
     }
     newGame->currentPlayer = 1;
@@ -103,38 +113,41 @@ int createGame(AwaleGame* newGame){
     return 0;
 }
 
-int registerMove(AwaleGame* game, int slot){
-    if (game->nextMoveInSequence >= MAX_AWALE_MOVES ) return MOVE_LIMIT_REACHED_ERROR; /*Error, move limit has been reached */
+int registerMove(AwaleGame* game, int slot)
+{
+    if(game->nextMoveInSequence >= MAX_AWALE_MOVES ) return MOVE_LIMIT_REACHED_ERROR; /*Error, move limit has been reached */
 
     game->moveSequence[game->nextMoveInSequence++] = slot;
     return 0;
 }
 
-int playAwale(AwaleGame* game, int slot){
+int playAwale(AwaleGame* game, int slot)
+{
     slot -= 1; // To use 0-based index.
     if (slot < 0 || slot > 5) return INVALID_SLOT_ERROR;
 
     int i;
-    if (game->currentPlayer == 2)
+    if(game->currentPlayer == 2)
         slot = 11 - slot;
 
     /* Create a fake array to simulate the next turn */
     int previewArray[12];
-    for (i=0; i<12; i++)
+    for(i=0; i<12; i++)
         previewArray[i] = game->board[i];
 
     
     int nbBeads =  previewArray[slot];
-    if (nbBeads == 0) return EMPTY_SLOT_ERROR; /* Case when player choose and empty slot */
+    if(nbBeads == 0) return EMPTY_SLOT_ERROR; /* Case when player choose and empty slot */
     
     /* Take the beads out of the selected slot*/
     previewArray[slot] = 0;
 
     /* Put the beads in the next slots */
     int nextSlot;
-    for (i=1; i<=nbBeads; ++i){
+    for(i=1; i<=nbBeads; ++i)
+    {
         nextSlot = (slot+i)%12;
-        if (nextSlot != slot) /* Must ignore the slot that was emptied */
+        if(nextSlot != slot) /* Must ignore the slot that was emptied */
             previewArray[nextSlot] += 1;
     }
 
@@ -142,23 +155,33 @@ int playAwale(AwaleGame* game, int slot){
     int slotToEmpty = (slot+nbBeads)%12;
 
     /* Perform captures */
-    if (game->currentPlayer == 1 && slotToEmpty > 5){ /* player1 finished in player2's side*/
-        while (slotToEmpty > 5){
+    if(game->currentPlayer == 1 && slotToEmpty > 5)
+    { /* player1 finished in player2's side*/
+        while(slotToEmpty > 5)
+        {
             if (previewArray[slotToEmpty] > 1 && previewArray[slotToEmpty] < 4){
                 scoreToAdd += previewArray[slotToEmpty];
                 previewArray[slotToEmpty] = 0;
                 slotToEmpty = (slotToEmpty+11)%12;
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
-    } else if (game->currentPlayer == 2 && (slot+nbBeads)%12 < 6){ /* player2 finished in player1's side*/
-        while (slotToEmpty < 6){
-            if (previewArray[slotToEmpty] > 1 && previewArray[slotToEmpty] < 4){
+    }
+    else if(game->currentPlayer == 2 && (slot+nbBeads)%12 < 6)
+    { /* player2 finished in player1's side*/
+        while(slotToEmpty < 6)
+        {
+            if(previewArray[slotToEmpty] > 1 && previewArray[slotToEmpty] < 4)
+            {
                 scoreToAdd += previewArray[slotToEmpty];
                 previewArray[slotToEmpty] = 0;
                 slotToEmpty = (slotToEmpty+11)%12;
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
@@ -166,16 +189,23 @@ int playAwale(AwaleGame* game, int slot){
 
     /* Check that the play didn't cause a famine */
     bool famine = true;
-    if (game->currentPlayer == 1) {
-        for (i=6; i<12; i++){
-            if (previewArray[i] > 0){
+    if(game->currentPlayer == 1)
+    {
+        for(i=6; i<12; i++)
+        {
+            if(previewArray[i] > 0)
+            {
                 famine = false;
                 break;
             }
         }
-    } else {
-        for (i=0; i<5; i++){
-            if (previewArray[i] > 0){
+    }
+    else
+    {
+        for(i=0; i<5; i++)
+        {
+            if(previewArray[i] > 0)
+            {
                 famine = false;
                 break;
             }
@@ -188,14 +218,18 @@ int playAwale(AwaleGame* game, int slot){
     /* Else update the game*/
 
     /* Update score */
-    if (game->currentPlayer == 1){
+    if(game->currentPlayer == 1)
+    {
         game->player1Score += scoreToAdd;
-    } else {
+    }
+    else
+    {
         game->player2Score += scoreToAdd;
     }
 
     /* Update board */
-    for (i=0; i<12; ++i){
+    for(i=0; i<12; ++i)
+    {
         game->board[i] = previewArray[i];
     }
 
@@ -204,37 +238,45 @@ int playAwale(AwaleGame* game, int slot){
     return 0;
 }
 
-int endGame(AwaleGame* game){
+int endGame(AwaleGame* game)
+{
     int i;
     int winner = (game->player1Score > game->player2Score ? 1 : 2);
 
-    if (game->player1Score > 24 || game->player2Score > 24 || game->nextMoveInSequence >= MAX_AWALE_MOVES){
+    if(game->player1Score > 24 || game->player2Score > 24 || game->nextMoveInSequence >= MAX_AWALE_MOVES)
+    {
         game->isFinished = true;
         return winner;    
     }
 
     /* Checking if player 1's side is empty*/
     bool emptySide = true;
-    for (i=0; i<5; i++){
-        if (game->board[i] > 0){
+    for(i=0; i<5; i++)
+    {
+        if(game->board[i] > 0)
+        {
             emptySide = false;
             break;
         }
     }
-    if (emptySide){
+    if(emptySide)
+    {
         game->isFinished = true;
         return winner;
     } 
 
     /* Checking if player 2's side is empty*/
     emptySide = true;
-    for (i=6; i<12; i++){
-        if (game->board[i] > 0){
+    for(i=6; i<12; i++)
+    {
+        if(game->board[i] > 0)
+        {
             emptySide = false;
             break;
         }
     }
-    if (emptySide){
+    if(emptySide)
+    {
         game->isFinished = true;
         return winner;
     } 
@@ -242,12 +284,14 @@ int endGame(AwaleGame* game){
     return 0;
 }
 
-int showWinner(int winner, char* result){
+int showWinner(int winner, char* result)
+{
     sprintf(result, "\nPlayer %d won !\nPlayer %d is the beans master !\n", winner, winner);
     return 0;
 }
 
-char* showError(int error){
+char* showError(int error)
+{
     switch (error){
         case INVALID_SLOT_ERROR :
             return "Entrée invalide : un coup doit être entre 1 et 6(inclus) !\n";
@@ -265,14 +309,16 @@ char* showError(int error){
     return "Unhandled Error\n";
 }
 
-int replayGame(AwaleGame* game, char* result){
+int replayGame(AwaleGame* game, char* result)
+{
     AwaleGame* duplicateGame = malloc(sizeof(AwaleGame));
     createGame(duplicateGame);
     strcpy(duplicateGame->player1, game->player1);
     strcpy(duplicateGame->player2, game->player2);
     char replayMsg[] = "Replay of the game :\n\n";
     strcpy(result,replayMsg);
-    for (int i=0; i<game->nextMoveInSequence; ++i){
+    for(int i=0; i<game->nextMoveInSequence; ++i)
+    {
         char* moveMsg = malloc(sizeof(char)*1000);
         jouer(duplicateGame, game->moveSequence[i], moveMsg);
         strcat(result, moveMsg);

@@ -16,10 +16,11 @@
 
 #define BUF_SIZE2    1024
 
-typedef struct{
+typedef struct
+{
     char* listeObservers[BUF_SIZE2];
     int actual;
-} ListeObserver;
+}ListeObserver;
 
 typedef struct 
 {
@@ -33,13 +34,13 @@ typedef struct
     int nextMoveInSequence;
     int moveSequence[1000];
     bool isFinished;
-} AwaleGame;
+}AwaleGame;
 
 typedef struct 
 {
     AwaleGame* listeAwales[MAX_GAMES];
     int actual;
-} ListeAwale;
+}ListeAwale;
 
 int createGame(AwaleGame* newGame);
 int jouer(AwaleGame* game, int slot, char* result);
