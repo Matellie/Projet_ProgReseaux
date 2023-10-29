@@ -877,6 +877,39 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       sprintf(replayMsg, "Pour voir un replay des coups joués jusqu'à présent utiliser la commande 'REPLAY %s %s'\n", joueur1, joueur2);
       write_client(sender.sock, replayMsg);
    }
+   else if(strcmp(cmd, "STOP_OBSERVER") == 0)
+   {
+      /* 
+      Format de la requete:
+      STOP_OBSERVER joueur1 joueur2
+      */
+      char * joueur1 = strtok(NULL, " ");
+      char * joueur2 = strtok(NULL, "\0");
+
+      // Vérifie que suffisamment d'argument ont été passés
+      if (joueur1 == NULL || joueur2 == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : STOP_OBSERVER [joueur1] [joueur2]\n");
+         return;
+      }
+
+      // Vérifier qu'une partie existe entre les 2 joueurs
+      int idPartie = checkIndexPartie(awales, joueur1, joueur2);
+      if (idPartie == -1){
+         write_client(sender.sock, "Aucune partie n'existe entre les deux joueurs.\n");
+         return;
+      }
+
+      for (int i=0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
+      {
+         if (strcmp(awales->listeAwales[idPartie]->observers.listeObservers[i], sender.name) == 0){
+            free(awales->listeAwales[idPartie]->observers.listeObservers[i]);
+            memmove(awales->listeAwales[idPartie]->observers.listeObservers + i, awales->listeAwales[idPartie]->observers.listeObservers + i + 1, (awales->listeAwales[idPartie]->observers.actual - i - 1) * sizeof(*(awales->listeAwales[idPartie]->observers.listeObservers)));
+            (awales->listeAwales[idPartie]->observers.actual)--;
+            return;
+         }
+      }
+      write_client(sender.sock, "Vous n'observiez pas cette partie ! O_O\n");
+   }
    else if (strcmp(cmd, "REPLAY") == 0)
    {
       /* 
