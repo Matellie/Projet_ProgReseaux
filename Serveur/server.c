@@ -378,9 +378,20 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       char message[BUF_SIZE];
       message[0] = 0;
       strncpy(message, "Commandes valides:\n", BUF_SIZE - 1);
-      strncat(message, "HELP, LISTE_PSEUDO, LISTE_DEFI, LISTE_PARTIE, SET_BIO, ", BUF_SIZE - strlen(buffer) - 1);
+      strncat(message, "HELP, REGLES, LISTE_PSEUDO, LISTE_DEFI, LISTE_PARTIE, SET_BIO, ", BUF_SIZE - strlen(buffer) - 1);
       strncat(message, "GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, REPLAY\n", BUF_SIZE - strlen(buffer) - 1);
       strncat(message, "Veuillez vous référer au manuel utilisateur pour une description plus complète\n", BUF_SIZE - strlen(buffer) - 1);
+      write_client(sender.sock, message);
+   }
+   else if(strcmp(cmd, "REGLES") == 0)
+   {
+      /* 
+      Format de la requete:
+      REGLES
+      */
+      char message[BUF_SIZE];
+      message[0] = 0;
+      strncpy(message, "Vous pourrez trouver les règles du jeu d'Awale ici: https://fr.wikipedia.org/wiki/Awal%C3%A9\n", BUF_SIZE - 1);
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
