@@ -100,6 +100,27 @@ static void app(void)
             continue;
          }
 
+         /* check if username is already taken */
+         int usrNameAlreadyTaken = 0;
+         for(int i=0; i<actual; i++)
+         {
+            if(strcmp(buffer, clients[i].name) == 0)
+            {
+               usrNameAlreadyTaken = 1;
+               break;
+            }
+         }
+         /* if username is already taken, cancel connection */
+         if(usrNameAlreadyTaken)
+         {
+            char message[BUF_SIZE];
+            message[0] = 0;
+            strncpy(message, "Ce pseudo est déjà pris ! :(", BUF_SIZE - 1);
+            write_client(csock, message);
+            closesocket(csock);
+            continue;
+         }
+
          /* what is the new maximum fd ? */
          max = csock > max ? csock : max;
 
@@ -346,7 +367,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       Format de la requete:
       HELP
       */
-      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, LISTE_DEFI, LISTE_PARTIE";
+      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, LISTE_DEFI, LISTE_PARTIE, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, REPLAY\n";
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
@@ -718,7 +739,6 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
    }
    else if(strcmp(cmd, "LISTE_PARTIE") == 0)
    {
-      printf("\nListe Partie\n");
       /* 
       Format de la requete:
       LISTE_PARTIE
