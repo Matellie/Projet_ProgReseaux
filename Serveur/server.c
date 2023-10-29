@@ -595,7 +595,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
                strcpy(newAwale->player1, pseudo);
             }
             createGame(newAwale);
-
+            newAwale->observers.actual = 0;
             // Mettre le jeu dans la liste de parties
             awales->listeAwales[awales->actual] = newAwale;
             (awales->actual)++;
