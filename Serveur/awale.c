@@ -286,7 +286,7 @@ int endGame(AwaleGame* game)
 
 int showWinner(int winner, char* result)
 {
-    sprintf(result, "\nPlayer %d won !\nPlayer %d is the beans master !\n", winner, winner);
+    sprintf(result, "\nLe joueur %d a gagné !\nBravo à lui !\n", winner);
     return 0;
 }
 

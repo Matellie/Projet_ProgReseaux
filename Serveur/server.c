@@ -747,6 +747,17 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
             }
          }
       }
+
+      // Vérifier si la partie est pas terminée
+      if (awales->listeAwales[idPartie]->isFinished){
+
+         // Détruire la partie
+         free(awales->listeAwales[idPartie]);
+         memmove(awales->listeAwales + idPartie, awales->listeAwales + idPartie + 1, (awales->actual - idPartie - 1) * sizeof(*(awales->listeAwales)));
+         (awales->actual)--;
+         write_client(sender.sock, "La partie entre vous deux est terminée.\n");
+         return;
+      }
    }
    else if(strcmp(cmd, "ABANDONNER") == 0)
    {
