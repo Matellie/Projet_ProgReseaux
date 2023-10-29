@@ -129,7 +129,8 @@ static void app(void)
             strncat(message, "    |__/|__/\\__/_/\\__/\\___/_/_/_/\\__/  \\__/\\___/      \n", BUF_SIZE - strlen(buffer) - 1);
             strncat(message, "   / _ |_    _____ _/ /__   / __ \\___  / (_)__  ___   \n", BUF_SIZE - strlen(buffer) - 1);
             strncat(message, "  / __ | |/|/ / _ `/ / -_) / /_/ / _ \\/ / / _ \\/ -_)  \n", BUF_SIZE - strlen(buffer) - 1);
-            strncat(message, " /_/ |_|__,__/\\_,_/_/\\__/  \\____/_//_/_/_/_//_/\\__/   \n", BUF_SIZE - strlen(buffer) - 1);                                                
+            strncat(message, " /_/ |_|__,__/\\_,_/_/\\__/  \\____/_//_/_/_/_//_/\\__/   \n\n", BUF_SIZE - strlen(buffer) - 1);
+            strncat(message, "Entrez 'HELP' pour avoir la liste des commandes\n", BUF_SIZE - strlen(buffer) - 1);
             write_client(csock, message);
          }
 
@@ -160,20 +161,13 @@ static void app(void)
                   remove_client(clients, &listeDeDefis, &listeDeAwale, i, &actual);
                   strncpy(buffer, client.name, BUF_SIZE - 1);
                   strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
-                  send_message_to_all_clients(clients, client, actual, buffer, 1);
+                  //send_message_to_all_clients(clients, client, actual, buffer, 1);
                   send_message_to_self(client, buffer);
                }
                else
                {
+                  /* On décode la commande envoyée par le client */
                   parse_message(clients, &listeDeDefis, &listeDeAwale, client, i, buffer, actual);
-                  for(int i=0; i<listeDeAwale.actual; i++)
-                  {
-                     for(int j=0; j<listeDeAwale.listeAwales[i]->observers.actual; j++)
-                     {
-                        printf("Observeur : %s ", listeDeAwale.listeAwales[i]->observers.listeObservers[j]);
-                     }
-                     printf("\n");
-                  }
                }
                break;
             }
@@ -292,9 +286,11 @@ static void send_message_to_client(Client * clients, Client sender, char *receiv
    message[0] = 0;
    if(indexReceiver != -1) // Si le receiver est connecté envoyer message
    {
-      strncpy(message, sender.name, BUF_SIZE - 1);
+      strncpy(message, "✨ Vous avez reçu un message ✨\n", BUF_SIZE - 1);
+      strncat(message, sender.name, sizeof message - strlen(message) - 1);
       strncat(message, " : ", sizeof message - strlen(message) - 1);
       strncat(message, buffer, sizeof message - strlen(message) - 1);
+      strncat(message, "\n", sizeof message - strlen(message) - 1);
       write_client(clients[indexReceiver].sock, message);
    }
    else // Si le receiver n est pas dans la liste des gens connectés envoyer message d erreur au sender
@@ -379,7 +375,12 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       Format de la requete:
       HELP
       */
-      char * message = "Commandes valides:\nHELP, LISTE_PSEUDO, LISTE_DEFI, LISTE_PARTIE, SET_BIO, GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, REPLAY\n";
+      char message[BUF_SIZE];
+      message[0] = 0;
+      strncpy(message, "Commandes valides:\n", BUF_SIZE - 1);
+      strncat(message, "HELP, LISTE_PSEUDO, LISTE_DEFI, LISTE_PARTIE, SET_BIO, ", BUF_SIZE - strlen(buffer) - 1);
+      strncat(message, "GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, REPLAY\n", BUF_SIZE - strlen(buffer) - 1);
+      strncat(message, "Veuillez vous référer au manuel utilisateur pour une description plus complète\n", BUF_SIZE - strlen(buffer) - 1);
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_PSEUDO") == 0)
@@ -390,11 +391,14 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char message[BUF_SIZE];
       message[0] = 0;
-      for(int i=0; i<actual; i++)
+      strncpy(message, "Les joueurs actuellement connectés sont:\n", BUF_SIZE - 1);
+      for(int i=0; i<actual-1; i++)
       {
          strncat(message, clients[i].name, sizeof message - strlen(message) - 1);
          strncat(message, ", ", sizeof message - strlen(message) - 1);
       }
+      strncat(message, clients[actual-1].name, sizeof message - strlen(message) - 1);
+      strncat(message, "\n", sizeof message - strlen(message) - 1);
       write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "SET_BIO") == 0)
@@ -407,11 +411,13 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
 
       // Vérifie que suffisamment d'argument ont été passés
       if (texte_bio == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : SET_BIO [text_bio]");
-         return;
+         write_client(sender.sock, "Vous n'avez pas spécifié de biographie !\nFormat : SET_BIO [texte_bio]\n");
       }
-
-      strncpy(clients[indexClient].bio, texte_bio, BUF_SIZE - 1);
+      else
+      {
+         strncpy(clients[indexClient].bio, texte_bio, BUF_SIZE - 1);
+         write_client(sender.sock, "Votre biographie a bien été enregistrée\n");
+      }
    }
    else if(strcmp(cmd, "GET_BIO") == 0)
    {
@@ -423,7 +429,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
 
       // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : GET_BIO [pseudo]");
+         write_client(sender.sock, "Vous n'avez pas spécifié de pseudo !\nFormat : GET_BIO [pseudo]\n");
          return;
       }
 
@@ -435,11 +441,12 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       if(indexPseudo != -1)
       {
          strncpy(message, clients[indexPseudo].bio, BUF_SIZE - 1);
+         strncat(message, "\n", sizeof message - strlen(message) - 1);
          write_client(sender.sock, message);
       }
       else
       {
-         strncpy(message, "Cette personne n'est pas connectée ! :(", BUF_SIZE - 1);
+         strncpy(message, "Cette personne n'est pas connectée ! :(\n", BUF_SIZE - 1);
          write_client(sender.sock, message);
       }
    }
@@ -453,12 +460,19 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       char * message = strtok(NULL, "\0");
 
       // Vérifie que suffisamment d'argument ont été passés
-      if (receiver == NULL || message == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : CHAT [pseudo] [message]");
-         return;
+      if (receiver == NULL || message == NULL)
+      {
+         write_client(sender.sock, "Vous n'avez pas respecté le format !\nFormat : CHAT [pseudo] [message]\n");
       }
-
-      send_message_to_client(clients, sender, receiver, message, actual);
+      else if(strcmp(sender.name, receiver) == 0)
+      {
+         write_client(sender.sock, "Vous ne devez pas avoir beaucoup d'amis si vous envoyez des messages à vous-même :O\n");
+         send_message_to_client(clients, sender, receiver, message, actual);
+      }
+      else
+      {
+         send_message_to_client(clients, sender, receiver, message, actual);
+      }
    }
    else if(strcmp(cmd, "DEFIER") == 0)
    {
@@ -470,7 +484,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
 
       // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : DEFIER [pseudo]");
+         write_client(clients[indexClient].sock, "Vous n'avez pas spécifié de personne à défier !\nFormat : DEFIER [pseudo]\n");
          return;
       }
 
@@ -481,7 +495,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       message[0] = 0;
       if(indexPseudo != -1)
       {
-         // Vérifier que un défi n'a pas déjà été lancé entre les 2 clients 
+         // Vérifier qu'un défi n'a pas déjà été lancé entre les 2 clients 
          int indexDefi = checkIndexDefi(defis, sender.name, pseudo);
 
          if (indexDefi != -1){
@@ -493,18 +507,19 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          // Vérifier qu'une partie n'est pas déjà en cours entre les 2 clients
          int idPartie = checkIndexPartie(awales, sender.name, pseudo);
          if (idPartie > -1){
-            write_client(clients[indexClient].sock, "Une partie existe déjà entre vous deux.\n");
+            write_client(sender.sock, "Une partie existe déjà entre vous deux.\n");
             return;
          }
 
-         strncpy(message, "!!! ", BUF_SIZE - 1);
+         strncpy(message, "🚨🚨 ", BUF_SIZE - 1);
          strncat(message, sender.name, sizeof message - strlen(message) - 1);
-         strncat(message, " vous défie au jeu d'Awale !!!\nRépondez par 'ACCEPTER ", sizeof message - strlen(message) - 1);
+         strncat(message, " vous défie au jeu d'Awale 🚨🚨\nRépondez par 'ACCEPTER ", sizeof message - strlen(message) - 1);
          strncat(message, sender.name, sizeof message - strlen(message) - 1);
-         strncat(message, "' pour lancer la partie\nRépondez par 'REFUSER ", sizeof message - strlen(message) - 1);
+         strncat(message, "' pour lancer la partie ✅\nRépondez par 'REFUSER ", sizeof message - strlen(message) - 1);
          strncat(message, sender.name, sizeof message - strlen(message) - 1);
-         strncat(message, "' pour refuser la partie", sizeof message - strlen(message) - 1);
+         strncat(message, "' pour refuser la partie ❌\n", sizeof message - strlen(message) - 1);
          write_client(clients[indexPseudo].sock, message);
+         write_client(sender.sock, "\n");
 
          // Créer un défi
          Defi * newDefi = malloc(sizeof(Defi));
@@ -515,7 +530,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       }
       else
       {
-         strncpy(message, "Cette personne n'est pas connectée ! :(", BUF_SIZE - 1);
+         strncpy(message, "Cette personne n'est pas connectée ! :(\n", BUF_SIZE - 1);
          write_client(sender.sock, message);
       }
    }
@@ -529,7 +544,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
 
       // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : ACCEPTER [pseudo]");
+         write_client(clients[indexClient].sock, "Vous n'avez pas spécifié de pseudo !\nFormat : ACCEPTER [pseudo]\n");
          return;
       }
 
@@ -547,19 +562,17 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          // Si le défi existe bien
          if(indexDefi != -1)
          {
-            strncpy(message, "!!! Defi de ", BUF_SIZE - 1);
+            strncpy(message, "🚨🚨 Defi de ", BUF_SIZE - 1);
             strncat(message, pseudo, sizeof message - strlen(message) - 1);
             strncat(message, " accepté par ", sizeof message - strlen(message) - 1);
             strncat(message, sender.name, sizeof message - strlen(message) - 1);
-            strncat(message, " !!! La partie va bientôt commencer !", sizeof message - strlen(message) - 1);
+            strncat(message, " 🚨🚨 La partie va bientôt commencer !\n", sizeof message - strlen(message) - 1);
             write_client(sender.sock, message);
             write_client(clients[indexPseudo].sock, message);
 
             // Créer le jeu d'Awale
             AwaleGame * newAwale = malloc(sizeof(AwaleGame));
-            // TODO : PLAYER 1 ET PLAYER 2 ALEATOIRE
-            int alea = rand()%2;
-            if(alea == 0)
+            if(rand()%2 == 0)
             {
                strcpy(newAwale->player1, sender.name);
                strcpy(newAwale->player2, pseudo);
@@ -589,13 +602,13 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          }
          else
          {
-            strncpy(message, "Cette personne ne vous a pas défié ! xP", BUF_SIZE - 1);
+            strncpy(message, "Cette personne ne vous a pas défié ! xP\n", BUF_SIZE - 1);
             write_client(sender.sock, message);
          }
       }
       else
       {
-         strncpy(message, "Cette personne n'est pas connectée ! :(", BUF_SIZE - 1);
+         strncpy(message, "Cette personne n'est pas connectée ! :(\n", BUF_SIZE - 1);
          write_client(sender.sock, message);
       }
    }
@@ -609,7 +622,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       
       // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
-         write_client(clients[indexClient].sock, "Format invalide !\nFormat : REFUSER [pseudo]");
+         write_client(clients[indexClient].sock, "Vous n'avez pas spécifié de pseudo !\nFormat : REFUSER [pseudo]\n");
          return;
       }
 
@@ -626,7 +639,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          memmove(defis->listeDefis + indexDefi, defis->listeDefis + indexDefi + 1, (defis->actual - indexDefi - 1) * sizeof(*(defis->listeDefis)));
          (defis->actual)--;
 
-         strncpy(message, "Le défi a été réduit au silence ! :)", BUF_SIZE - 1);
+         strncpy(message, "Le défi a été réduit au silence ! :)\n", BUF_SIZE - 1);
          write_client(sender.sock, message);
 
          // Find index of the pseudo
@@ -635,13 +648,13 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          if(indexPseudo != -1)
          {
             strncpy(message, sender.name, BUF_SIZE - 1);
-            strncat(message, " a rejeté votre défi ! ^^'", sizeof message - strlen(message) - 1);
+            strncat(message, " a rejeté votre défi ! ^^'\n", sizeof message - strlen(message) - 1);
             write_client(clients[indexPseudo].sock, message);
          }
       }
       else
       {
-         strncpy(message, "Ce défi n'existe pas ! :O", BUF_SIZE - 1);
+         strncpy(message, "Ce défi n'existe pas ! :O\n", BUF_SIZE - 1);
          write_client(sender.sock, message);
       }
    }
@@ -731,6 +744,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char message[BUF_SIZE];
       message[0] = 0;
+      
       if (defis->actual == 0)
       {
          strncat(message, "Aucun défi en cours\n", sizeof message - strlen(message) - 1);
@@ -757,17 +771,23 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char message[BUF_SIZE];
       message[0] = 0;
-      for(int i=0; i<awales->actual; i++)
+
+      if(awales->actual == 0)
       {
-         strncat(message, awales->listeAwales[i]->player1, sizeof message - strlen(message) - 1);
-         strncat(message, " vs ", sizeof message - strlen(message) - 1);
-         strncat(message, awales->listeAwales[i]->player2, sizeof message - strlen(message) - 1);
-         strncat(message, "\n", sizeof message - strlen(message) - 1);
+         strncpy(message, "Aucune partie en cours\n", BUF_SIZE - 1);
+      }
+      else
+      {
+         strncpy(message, "Parties en cours:\n", BUF_SIZE - 1);
+         for(int i=0; i<awales->actual; i++)
+         {
+            strncat(message, awales->listeAwales[i]->player1, sizeof message - strlen(message) - 1);
+            strncat(message, " vs ", sizeof message - strlen(message) - 1);
+            strncat(message, awales->listeAwales[i]->player2, sizeof message - strlen(message) - 1);
+            strncat(message, "\n", sizeof message - strlen(message) - 1);
+         }
       }
 
-      if(awales->actual == 0){
-         strncat(message, "Aucune partie en cours\n", sizeof message - strlen(message) - 1);
-      }
       write_client(sender.sock, message);
    } 
    else if (strcmp(cmd, "OBSERVER") == 0) 
@@ -788,7 +808,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       // On ne peut pas s'observer
       if (strcmp(joueur1, sender.name) == 0 || strcmp(joueur2, sender.name) == 0)
       {
-         write_client(clients[indexClient].sock, "Tu ne peut pas t'observer toi-même.\n");
+         write_client(clients[indexClient].sock, "Tu ne peux pas t'observer toi-même ;)\n");
          return;
       }
 
@@ -799,13 +819,16 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          return;
       }
 
+      // Ajouter le client dans la liste des observateurs de la partie
       char * observateur = malloc(sizeof(char)*BUF_SIZE);
       strncpy(observateur, sender.name, BUF_SIZE - 1);
       awales->listeAwales[idPartie]->observers.listeObservers[awales->listeAwales[idPartie]->observers.actual] = observateur;
       (awales->listeAwales[idPartie]->observers.actual)++;
+      write_client(sender.sock, "Tu peux maintenant observer cette partie lorsque des coups sont joués.\n");
+
       char replayMsg[BUF_SIZE];
       replayMsg[0] = 0;
-      sprintf(replayMsg, "Pour voir un replay des coups joués jusqu'à présent utiliser la commande REPLAY %s %s\n", joueur1, joueur2);
+      sprintf(replayMsg, "Pour voir un replay des coups joués jusqu'à présent utiliser la commande 'REPLAY %s %s'\n", joueur1, joueur2);
       write_client(sender.sock, replayMsg);
    }
    else if (strcmp(cmd, "REPLAY") == 0)
@@ -837,7 +860,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
    }
    else
    {
-      write_client(sender.sock, "Commande non reconnue - Entrer HELP pour voir la liste des commandes disponibles\n");
+      write_client(sender.sock, "Commande non reconnue\nEntrer 'HELP' pour voir la liste des commandes disponibles\n");
       printf("%s : CMD non reconnue\n", sender.name);
    }
 }
