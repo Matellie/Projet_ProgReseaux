@@ -728,13 +728,14 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       
       int slot = atoi(slotStr);
 
-      char* messageCoup = malloc(sizeof(char)*BUF_SIZE);
+      char messageCoup[BUF_SIZE];
+      messageCoup[0] = 0;
       jouer(awales->listeAwales[idPartie], slot, messageCoup);
       // Envoyer le plateau avec le nouveau coup à la personne qui a joué et à son adversaire
       write_client(sender.sock, messageCoup);
       write_client(clients[indexPseudo].sock, messageCoup);
       // Envoyer le plateau avec le nouveau coup aux observers
-      for (int i=0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
+      for (int i=0; i<awales->listeAwales[idPartie]->observers.actual; i++)
       {
          // Find index of the pseudo
          for(int j=0; j<actual; j++)
@@ -746,7 +747,6 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
             }
          }
       }
-      free(messageCoup);
    }
    else if(strcmp(cmd, "ABANDONNER") == 0)
    {
