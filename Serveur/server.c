@@ -219,6 +219,7 @@ static void remove_client(Client *clients, ListeDefi *defis, ListeAwale *awales,
       if(strcmp(clientDeco, awales->listeAwales[i]->player1) == 0 || 
          strcmp(clientDeco, awales->listeAwales[i]->player2) == 0)
       {
+         free(awales->listeAwales[i]->observers.listeObservers);
          free(awales->listeAwales[i]);
          memmove(awales->listeAwales + i, awales->listeAwales + i + 1, (awales->actual - i - 1) * sizeof(*(awales->listeAwales)));
          (awales->actual)--;
@@ -379,7 +380,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       message[0] = 0;
       strncpy(message, "Commandes valides:\n", BUF_SIZE - 1);
       strncat(message, "HELP, REGLES, LISTE_PSEUDO, LISTE_DEFI, LISTE_PARTIE, SET_BIO, ", BUF_SIZE - strlen(buffer) - 1);
-      strncat(message, "GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, REPLAY\n", BUF_SIZE - strlen(buffer) - 1);
+      strncat(message, "GET_BIO, CHAT, DEFIER, ACCEPTER, REFUSER, JOUER, ABANDONNER, REPLAY\n", BUF_SIZE - strlen(buffer) - 1);
       strncat(message, "Veuillez vous référer au manuel utilisateur pour une description plus complète\n", BUF_SIZE - strlen(buffer) - 1);
       write_client(sender.sock, message);
    }
@@ -746,6 +747,40 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          }
       }
       free(messageCoup);
+   }
+   else if(strcmp(cmd, "ABANDONNER") == 0)
+   {
+      /* 
+      Format de la requete:
+      ABANDONNER pseudo_adversaire
+      */
+      char * pseudoAdversaire = strtok(NULL, "\0");
+
+      // Vérifie que suffisamment d'argument ont été passés
+      if(pseudoAdversaire == NULL)
+      {
+         write_client(sender.sock, "Vous n'avez pas spécifié de joueur !\nFormat : ABANDONNER [pseudoAdversaire]\n");
+      }
+      
+      // Vérifier qu'une partie existe entre les 2 joueurs
+      int indexPartie = checkIndexPartie(awales, sender.name, pseudoAdversaire);
+      if(indexPartie == -1)
+      {
+         write_client(sender.sock, "Aucune partie n'existe entre vous deux.\n");
+         return;
+      }
+
+      // Vérifier que la partie n'est pas terminée
+      if (awales->listeAwales[indexPartie]->isFinished){
+         write_client(sender.sock, "La partie entre vous deux est terminée.\n");
+         return;
+      }
+
+      // Détruire la partie
+      free(awales->listeAwales[indexPartie]->observers.listeObservers);
+      free(awales->listeAwales[indexPartie]);
+      memmove(awales->listeAwales + indexPartie, awales->listeAwales + indexPartie + 1, (awales->actual - indexPartie - 1) * sizeof(*(awales->listeAwales)));
+      (awales->actual)--;
    }
    else if(strcmp(cmd, "LISTE_DEFI") == 0)
    {
