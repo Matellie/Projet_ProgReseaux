@@ -777,10 +777,18 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       }
 
       // Détruire la partie
-      free(awales->listeAwales[indexPartie]->observers.listeObservers);
       free(awales->listeAwales[indexPartie]);
       memmove(awales->listeAwales + indexPartie, awales->listeAwales + indexPartie + 1, (awales->actual - indexPartie - 1) * sizeof(*(awales->listeAwales)));
       (awales->actual)--;
+
+      // Envoyer message de confirmation
+      write_client(sender.sock, "Vous avez abandonné la partie. T-T\n");
+      // Envoyer message à l adversaire
+      char message[BUF_SIZE];
+      message[0] = 0;
+      strncpy(message, sender.name, BUF_SIZE - 1);
+      strncat(message, " a abandonné la partie. T-T\n", BUF_SIZE - strlen(buffer) - 1);
+      write_client(sender.sock, message);
    }
    else if(strcmp(cmd, "LISTE_DEFI") == 0)
    {
@@ -903,6 +911,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       for (int i=0; i<awales->listeAwales[idPartie]->observers.actual; ++i)
       {
          if (strcmp(awales->listeAwales[idPartie]->observers.listeObservers[i], sender.name) == 0){
+            free(awales->listeAwales[idPartie]->observers.listeObservers[i]);
             memmove(awales->listeAwales[idPartie]->observers.listeObservers + i, awales->listeAwales[idPartie]->observers.listeObservers + i + 1, (awales->listeAwales[idPartie]->observers.actual - i - 1) * sizeof(*(awales->listeAwales[idPartie]->observers.listeObservers)));
             (awales->listeAwales[idPartie]->observers.actual)--;
             return;
