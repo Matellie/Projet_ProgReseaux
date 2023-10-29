@@ -135,7 +135,6 @@ static void app(void)
                   parse_message(clients, &listeDeDefis, &listeDeAwale, client, i, buffer, actual);
                   for(int i=0; i<listeDeAwale.actual; i++)
                   {
-                     printf("Game : %d || ", listeDeAwale.actual);
                      for(int j=0; j<listeDeAwale.listeAwales[i]->observers.actual; j++)
                      {
                         printf("Observeur : %s ", listeDeAwale.listeAwales[i]->observers.listeObservers[j]);
@@ -254,15 +253,7 @@ static void send_message_to_client(Client * clients, Client sender, char *receiv
    printf("send_message_to_client\n");
    
    // Find index of the receiver
-   int indexReceiver = -1;
-   for(int i=0; i<actual; i++)
-   {
-      if(strcmp(receiver, clients[i].name) == 0)
-      {
-         indexReceiver = i;
-         break;
-      }
-   }
+   int indexReceiver = checkIndexClient(clients, actual, receiver);
 
    char message[BUF_SIZE];
    message[0] = 0;
@@ -381,7 +372,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char * texte_bio = strtok(NULL, "\0");
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (texte_bio == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : SET_BIO [text_bio]");
          return;
@@ -397,22 +388,14 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char * pseudo = strtok(NULL, "\0");
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : GET_BIO [pseudo]");
          return;
       }
 
       // Find index of the pseudo
-      int indexPseudo = -1;
-      for(int i=0; i<actual; i++)
-      {
-         if(strcmp(pseudo, clients[i].name) == 0)
-         {
-            indexPseudo = i;
-            break;
-         }
-      }
+      int indexPseudo = checkIndexClient(clients, actual, pseudo);
 
       char message[BUF_SIZE];
       message[0] = 0;
@@ -436,7 +419,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       char * receiver = strtok(NULL, " ");
       char * message = strtok(NULL, "\0");
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (receiver == NULL || message == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : CHAT [pseudo] [message]");
          return;
@@ -452,66 +435,30 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char * pseudo = strtok(NULL, "\0");
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : DEFIER [pseudo]");
          return;
       }
 
       // Find index of the pseudo
-      int indexPseudo = -1;
-      for(int i=0; i<actual; i++)
-      {
-         if(strcmp(pseudo, clients[i].name) == 0)
-         {
-            indexPseudo = i;
-            break;
-         }
-      }
+      int indexPseudo = checkIndexClient(clients, actual, pseudo);
 
       char message[BUF_SIZE];
       message[0] = 0;
       if(indexPseudo != -1)
       {
          // Vérifier que un défi n'a pas déjà été lancé entre les 2 clients 
-         bool defiExisteDeja = false;
-         for (int i=0; i<defis->actual; ++i){
-            if (( // Vérifie que ce joueur ne vous a pas déjà défié 
-                  strcmp(defis->listeDefis[i]->pseudoEstDefie, sender.name) == 0 
-                  && strcmp(defis->listeDefis[i]->pseudoQuiDefie, pseudo) == 0
-               ) || ( // Vérifie que vous n'avez pas déjà défié ce joueur 
-                  strcmp(defis->listeDefis[i]->pseudoEstDefie, pseudo) == 0
-                  && strcmp(defis->listeDefis[i]->pseudoQuiDefie, sender.name) == 0
-               ))
-            {
-               defiExisteDeja = true;
-               break;
-            }
-         }
+         int indexDefi = checkIndexDefi(defis, sender.name, pseudo);
 
-         if (defiExisteDeja){
+         if (indexDefi != -1){
             strncpy(message, "Un defi existe deja entre vous deux.\n", sizeof message - strlen(message) - 1);
             write_client(sender.sock, message);
             return;
          }
 
          // Vérifier qu'une partie n'est pas déjà en cours entre les 2 clients
-         int idPartie = -1;
-         for (int i=0; i<awales->actual; ++i)
-         {
-            if ((
-                  strcmp(awales->listeAwales[i]->player1, sender.name) == 0 
-                  && strcmp(awales->listeAwales[i]->player2, pseudo) == 0
-               ) || (
-                  strcmp(awales->listeAwales[i]->player1, pseudo) == 0
-                  && strcmp(awales->listeAwales[i]->player2, sender.name) == 0
-               ))
-            {
-               idPartie = i;
-               break;
-            }
-         }
-
+         int idPartie = checkIndexPartie(awales, sender.name, pseudo);
          if (idPartie > -1){
             write_client(clients[indexClient].sock, "Une partie existe déjà entre vous deux.\n");
             return;
@@ -547,22 +494,14 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char * pseudo = strtok(NULL, "\0");
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : ACCEPTER [pseudo]");
          return;
       }
 
       // Find index of the pseudo
-      int indexPseudo = -1;
-      for(int i=0; i<actual; i++)
-      {
-         if(strcmp(pseudo, clients[i].name) == 0)
-         {
-            indexPseudo = i;
-            break;
-         }
-      }
+      int indexPseudo = checkIndexClient(clients, actual, pseudo);
 
       char message[BUF_SIZE];
       message[0] = 0;
@@ -570,16 +509,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       if(indexPseudo != -1)
       {
          // Find index of the defi
-         int indexDefi = -1;
-         for(int i=0; i<defis->actual; i++)
-         {
-            if(strcmp(pseudo, defis->listeDefis[i]->pseudoQuiDefie) == 0 && 
-               strcmp(sender.name, defis->listeDefis[i]->pseudoEstDefie) == 0)
-            {
-               indexDefi = i;
-               break;
-            }
-         }
+         int indexDefi = checkIndexDefi(defis, sender.name, pseudo);
 
          // Si le défi existe bien
          if(indexDefi != -1)
@@ -644,23 +574,14 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char * pseudo = strtok(NULL, "\0");
       
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (pseudo == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : REFUSER [pseudo]");
          return;
       }
 
       // Find index of the defi
-      int indexDefi = -1;
-      for(int i=0; i<defis->actual; i++)
-      {
-         if(strcmp(pseudo, defis->listeDefis[i]->pseudoQuiDefie) == 0 && 
-            strcmp(sender.name, defis->listeDefis[i]->pseudoEstDefie) == 0)
-         {
-            indexDefi = i;
-            break;
-         }
-      }
+      int indexDefi = checkIndexDefi(defis, sender.name, pseudo);
 
       char message[BUF_SIZE];
       message[0] = 0;
@@ -676,15 +597,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          write_client(sender.sock, message);
 
          // Find index of the pseudo
-         int indexPseudo = -1;
-         for(int i=0; i<actual; i++)
-         {
-            if(strcmp(pseudo, clients[i].name) == 0)
-            {
-               indexPseudo = i;
-               break;
-            }
-         }
+         int indexPseudo = checkIndexClient(clients, actual, pseudo);
 
          if(indexPseudo != -1)
          {
@@ -726,7 +639,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
          return;
       }
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (pseudoAdversaire == NULL || slotStr == NULL)
       {
          write_client(sender.sock, "Format invalide !\nFormat : JOUER [pseudo_adversaire] [case]");
@@ -734,21 +647,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       }
 
       // Vérifier qu'une partie existe entre les 2 joueurs
-      int idPartie = -1;
-      for (int i=0; i<awales->actual; ++i)
-      {
-         if ((
-               strcmp(awales->listeAwales[i]->player1, sender.name) == 0 
-               && strcmp(awales->listeAwales[i]->player2, pseudoAdversaire) == 0
-            ) || (
-               strcmp(awales->listeAwales[i]->player1, pseudoAdversaire) == 0
-               && strcmp(awales->listeAwales[i]->player2, sender.name) == 0
-            ))
-         {
-            idPartie = i;
-            break;
-         }
-      }
+      int idPartie = checkIndexPartie(awales, sender.name, pseudoAdversaire);
       if (idPartie == -1){
          write_client(sender.sock, "Aucune partie n'existe entre vous deux.\n");
          return;
@@ -799,7 +698,15 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       */
       char message[BUF_SIZE];
       message[0] = 0;
-      strncat(message, "Personne qui defie -> Personne defiee\n", sizeof message - strlen(message) - 1);
+      if (defis->actual == 0)
+      {
+         strncat(message, "Aucun défi en cours\n", sizeof message - strlen(message) - 1);
+         write_client(sender.sock, message);
+         return;
+      }
+
+      strncat(message, "Personne qui défie -> Personne défiée\n", sizeof message - strlen(message) - 1);
+
       for(int i=0; i<defis->actual; i++)
       {
          strncat(message, defis->listeDefis[i]->pseudoQuiDefie, sizeof message - strlen(message) - 1);
@@ -820,16 +727,14 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       message[0] = 0;
       for(int i=0; i<awales->actual; i++)
       {
-         strncat(message, "Partie ", sizeof message - strlen(message) - 1);
-         char * number = malloc(10*sizeof(char));
-         sprintf(number,"%d",i);
-         strncat(message, number, sizeof message - strlen(message) - 1);
-         free(number);
-         strncat(message, " : ", sizeof message - strlen(message) - 1);
          strncat(message, awales->listeAwales[i]->player1, sizeof message - strlen(message) - 1);
          strncat(message, " vs ", sizeof message - strlen(message) - 1);
          strncat(message, awales->listeAwales[i]->player2, sizeof message - strlen(message) - 1);
          strncat(message, "\n", sizeof message - strlen(message) - 1);
+      }
+
+      if(awales->actual == 0){
+         strncat(message, "Aucune partie en cours\n", sizeof message - strlen(message) - 1);
       }
       write_client(sender.sock, message);
    } 
@@ -842,35 +747,21 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       char * joueur1 = strtok(NULL, " ");
       char * joueur2 = strtok(NULL, "\0");
 
-      // Security in case not enough arguments have been provided
+      // Vérifie que suffisamment d'argument ont été passés
       if (joueur1 == NULL || joueur2 == NULL){
          write_client(clients[indexClient].sock, "Format invalide !\nFormat : OBSERVER [joueur1] [joueur2]\n");
          return;
       }
 
       // On ne peut pas s'observer
-      if (strcmp(joueur1, sender.name) == 0 && strcmp(joueur2, sender.name) == 0)
+      if (strcmp(joueur1, sender.name) == 0 || strcmp(joueur2, sender.name) == 0)
       {
          write_client(clients[indexClient].sock, "Tu ne peut pas t'observer toi-même.\n");
          return;
       }
 
       // Vérifier qu'une partie existe entre les 2 joueurs
-      int idPartie = -1;
-      for (int i=0; i<awales->actual; ++i)
-      {
-         if ((
-               strcmp(awales->listeAwales[i]->player1, joueur1) == 0 
-               && strcmp(awales->listeAwales[i]->player2, joueur2) == 0
-            ) || (
-               strcmp(awales->listeAwales[i]->player1, joueur2) == 0
-               && strcmp(awales->listeAwales[i]->player2, joueur1) == 0
-            ))
-         {
-            idPartie = i;
-            break;
-         }
-      }
+      int idPartie = checkIndexPartie(awales, joueur1, joueur2);
       if (idPartie == -1){
          write_client(sender.sock, "Aucune partie n'existe entre les deux joueurs.\n");
          return;
@@ -880,12 +771,88 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       strncpy(observateur, sender.name, BUF_SIZE - 1);
       awales->listeAwales[idPartie]->observers.listeObservers[awales->listeAwales[idPartie]->observers.actual] = observateur;
       (awales->listeAwales[idPartie]->observers.actual)++;
+      char replayMsg[BUF_SIZE];
+      replayMsg[0] = 0;
+      sprintf(replayMsg, "Pour voir un replay des coups joués jusqu'à présent utiliser la commande REPLAY %s %s\n", joueur1, joueur2);
+      write_client(sender.sock, replayMsg);
+   }
+   else if (strcmp(cmd, "REPLAY") == 0)
+   {
+      /* 
+      Format de la requete:
+      REPLAY joueur1 joueur2
+      */
+      char * joueur1 = strtok(NULL, " ");
+      char * joueur2 = strtok(NULL, "\0");
+
+      // Vérifie que suffisamment d'argument ont été passés
+      if (joueur1 == NULL || joueur2 == NULL){
+         write_client(clients[indexClient].sock, "Format invalide !\nFormat : REPLAY [joueur1] [joueur2]\n");
+         return;
+      }
+
+      // Vérifier qu'une partie existe entre les 2 joueurs
+      int idPartie = checkIndexPartie(awales, joueur1, joueur2);
+      if (idPartie == -1){
+         write_client(sender.sock, "Aucune partie n'existe entre les deux joueurs.\n");
+         return;
+      }
+
+      char * replay = malloc(BUF_SIZE*sizeof(awales->listeAwales[idPartie]->moveSequence)/sizeof(int));
+      replayGame(awales->listeAwales[idPartie], replay);
+      write_client(sender.sock, replay);
+      free(replay);
    }
    else
    {
       write_client(sender.sock, "Commande non reconnue - Entrer HELP pour voir la liste des commandes disponibles\n");
       printf("%s : CMD non reconnue\n", sender.name);
    }
+}
+
+/* Fonction qui renvoie l'indice de la partie entre joueur1 et joueur2.
+ * Renvoie -1 si la partie n'existe pas.
+ */
+int checkIndexPartie(ListeAwale * awales, char joueur1[BUF_SIZE], char joueur2[BUF_SIZE])
+{
+   for (int i=0; i<awales->actual; ++i)
+      if ((
+            strcmp(awales->listeAwales[i]->player1, joueur1) == 0 && strcmp(awales->listeAwales[i]->player2, joueur2) == 0
+         ) || (
+            strcmp(awales->listeAwales[i]->player1, joueur2) == 0 && strcmp(awales->listeAwales[i]->player2, joueur1) == 0
+         ))
+      {
+         return i;
+      }
+   return -1;
+}
+
+/* Fonction qui renvoie l'indice deu défi entre joueur1 et joueur2.
+ * Renvoie -1 si le défi n'existe pas.
+ */
+int checkIndexDefi(ListeDefi * defis, char joueur1[BUF_SIZE], char joueur2[BUF_SIZE])
+{
+   for (int i=0; i<defis->actual; ++i)
+      if (( // Joueur2 a défié joueur1
+            strcmp(defis->listeDefis[i]->pseudoEstDefie, joueur1) == 0 && strcmp(defis->listeDefis[i]->pseudoQuiDefie, joueur2) == 0
+         ) || ( // Joueur1 a défié joueur2
+            strcmp(defis->listeDefis[i]->pseudoEstDefie, joueur2) == 0 && strcmp(defis->listeDefis[i]->pseudoQuiDefie, joueur1) == 0
+         ))
+      {
+         return i;
+      }
+   return -1;
+}
+
+/* Fonction qui renvoie l'indice du client correspondant au pseudo.
+ * Renvoie -1 si le pseudo n'existe pas.
+ */
+int checkIndexClient(Client * clients, int actual, char pseudo[BUF_SIZE])
+{
+   for(int i=0; i<actual; i++)
+      if(strcmp(pseudo, clients[i].name) == 0)
+         return i;
+   return -1;
 }
 
 int main(int argc, char **argv)

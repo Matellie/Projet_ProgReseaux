@@ -250,16 +250,16 @@ int showWinner(int winner, char* result){
 char* showError(int error){
     switch (error){
         case INVALID_SLOT_ERROR :
-            return "Invalid input : Move must be between 1 and 6 (included) !\n";
+            return "Entrée invalide : un coup doit être entre 1 et 6(inclus) !\n";
             break;
         case EMPTY_SLOT_ERROR :
-            return "Invalid move : The selected move was an empty slot !\n";
+            return "Coup invalide : le coup saisi correspond à une case vide !\n";
             break;
         case FAMINE_MOVE_ERROR :
-            return "Invalid move : The selected move generated a famine !\n";
+            return "Coup invalide : Le coup sélectionné crée une famine !\n";
             break;
         case MOVE_LIMIT_REACHED_ERROR :
-            return "Error : Move has been player when move limit was already reached ! \n";
+            return "Erreur : un coup a été joué alors que la limite de coup était atteinte ! \n";
             break;
     }
     return "Unhandled Error\n";
@@ -268,6 +268,8 @@ char* showError(int error){
 int replayGame(AwaleGame* game, char* result){
     AwaleGame* duplicateGame = malloc(sizeof(AwaleGame));
     createGame(duplicateGame);
+    strcpy(duplicateGame->player1, game->player1);
+    strcpy(duplicateGame->player2, game->player2);
     char replayMsg[] = "Replay of the game :\n\n";
     strcpy(result,replayMsg);
     for (int i=0; i<game->nextMoveInSequence; ++i){

@@ -50,6 +50,8 @@ static void send_message_to_client(Client * clients, Client sender, char *receiv
 static void remove_client(Client *clients, ListeDefi *defis, ListeAwale *awales, int to_remove, int *actual);
 static void clear_clients(Client *clients, int actual);
 static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awales, Client sender, int indexClient, char *buffer, int actual);
-//static void play_awale_move(Client client, int slot);
+int checkIndexPartie(ListeAwale * awales, char joueur1[BUF_SIZE], char joueur2[BUF_SIZE]);
+int checkIndexDefi(ListeDefi * defis, char joueur1[BUF_SIZE], char joueur2[BUF_SIZE]);
+int checkIndexClient(Client * clients, int actual, char pseudo[BUF_SIZE]);
 
 #endif /* guard */
