@@ -925,6 +925,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
             free(awales->listeAwales[idPartie]->observers.listeObservers[i]);
             memmove(awales->listeAwales[idPartie]->observers.listeObservers + i, awales->listeAwales[idPartie]->observers.listeObservers + i + 1, (awales->listeAwales[idPartie]->observers.actual - i - 1) * sizeof(*(awales->listeAwales[idPartie]->observers.listeObservers)));
             (awales->listeAwales[idPartie]->observers.actual)--;
+            write_client(sender.sock, "Vous n'observez plus cette partie\n");
             return;
          }
       }
