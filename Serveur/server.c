@@ -110,15 +110,27 @@ static void app(void)
                break;
             }
          }
+         char message[BUF_SIZE];
+         message[0] = 0;
          /* if username is already taken, cancel connection */
          if(usrNameAlreadyTaken)
          {
-            char message[BUF_SIZE];
-            message[0] = 0;
             strncpy(message, "Ce pseudo est déjà pris ! :(", BUF_SIZE - 1);
             write_client(csock, message);
             closesocket(csock);
             continue;
+         }
+         /* else great the player */
+         else
+         {
+            strncpy(message, "     _      __    __                     __           \n", BUF_SIZE - 1);
+            strncat(message, "    | | /| / /__ / /______  __ _  ___   / /____       \n", BUF_SIZE - strlen(buffer) - 1);
+            strncat(message, "    | |/ |/ / -_) / __/ _ \\/  ' \\/ -_) / __/ _ \\      \n", BUF_SIZE - strlen(buffer) - 1);
+            strncat(message, "    |__/|__/\\__/_/\\__/\\___/_/_/_/\\__/  \\__/\\___/      \n", BUF_SIZE - strlen(buffer) - 1);
+            strncat(message, "   / _ |_    _____ _/ /__   / __ \\___  / (_)__  ___   \n", BUF_SIZE - strlen(buffer) - 1);
+            strncat(message, "  / __ | |/|/ / _ `/ / -_) / /_/ / _ \\/ / / _ \\/ -_)  \n", BUF_SIZE - strlen(buffer) - 1);
+            strncat(message, " /_/ |_|__,__/\\_,_/_/\\__/  \\____/_//_/_/_/_//_/\\__/   \n", BUF_SIZE - strlen(buffer) - 1);                                                
+            write_client(csock, message);
          }
 
          /* what is the new maximum fd ? */
