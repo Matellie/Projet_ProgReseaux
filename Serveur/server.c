@@ -868,7 +868,7 @@ static void parse_message(Client * clients, ListeDefi * defis, ListeAwale * awal
       // Ajouter le client dans la liste des observateurs de la partie
       char * observateur = malloc(sizeof(char)*BUF_SIZE);
       strncpy(observateur, sender.name, BUF_SIZE - 1);
-      awales->listeAwales[idPartie]->observers.listeObservers[awales->listeAwales[idPartie]->observers.actual] = observateur;
+      strncpy(awales->listeAwales[idPartie]->observers.listeObservers[awales->listeAwales[idPartie]->observers.actual], observateur, BUF_SIZE - 1);
       (awales->listeAwales[idPartie]->observers.actual)++;
       write_client(sender.sock, "Tu peux maintenant observer cette partie lorsque des coups sont joués.\n");
 
